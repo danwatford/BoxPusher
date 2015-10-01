@@ -1,7 +1,5 @@
 package com.foomoo.box;
 
-import com.sun.javafx.scene.traversal.Direction;
-import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Point2D;
@@ -9,8 +7,6 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
-
-import java.util.Optional;
 
 public class App extends Application {
 
@@ -50,12 +46,7 @@ public class App extends Application {
 
     private void addKeyHandler(Scene scene, Piece piece) {
         scene.addEventHandler(KeyEvent.KEY_PRESSED, ke -> {
-            Optional<Point2D> possiblePoint = board.getCellForPiece(piece);
-            if (!possiblePoint.isPresent()) {
-                throw new RuntimeException("Cell for player not found.");
-            }
-
-            Point2D currentPoint = possiblePoint.get();
+            Point2D currentPoint = board.getCellForPiece(piece);
 
             KeyCode keyCode = ke.getCode();
             switch (keyCode) {

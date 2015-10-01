@@ -5,6 +5,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.Property;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.Scene;
@@ -36,6 +37,28 @@ public class BoardView extends Scene {
         this.cellClickedHandler = handler;
         this.group = group;
 
+        board.targets().forEach(target -> {
+            Point2D cell = board.getCellForTarget(target);
+            Label targetLabel = new Label(target.getText());
+            targetLabel.setFont(new Font(CELL_HEIGHT * 3 / 4));
+            targetLabel.setTranslateX(cell.getX() * CELL_WIDTH);
+            targetLabel.setTranslateY(cell.getY() * CELL_HEIGHT);
+
+            targetLabel.setStyle("-fx-border-color: lightskyblue; -fx-background-color: lightskyblue");
+
+            group.getChildren().add(targetLabel);
+
+            Property<Boolean> property = board.getPropertyForTarget(target);
+            property.addListener((observable, oldValue, newValue) -> {
+
+                if (newValue.booleanValue()) {
+                    targetLabel.setStyle("-fx-border-color: greenyellow; -fx-background-color: greenyellow");
+                } else {
+                    targetLabel.setStyle("-fx-border-color: lightskyblue; -fx-background-color: lightskyblue");
+                }
+            });
+        });
+
         board.cellPositionsOnBoard().forEach(cell -> {
             Rectangle r = new Rectangle(CELL_WIDTH * cell.getX(), CELL_HEIGHT * cell.getY(), CELL_WIDTH, CELL_HEIGHT);
             r.setFill(Color.rgb(0, 0, 0, 0));
@@ -63,35 +86,10 @@ public class BoardView extends Scene {
             }
         });
 
-        board.targets().forEach(target -> {
-            board.getCellForTarget(target).ifPresent(cell -> {
-                        Label targetLabel = new Label(target.getText());
-                        targetLabel.setFont(new Font(CELL_HEIGHT * 3 / 4));
-                        targetLabel.setTranslateX(cell.getX() * CELL_WIDTH);
-                        targetLabel.setTranslateY(cell.getY() * CELL_HEIGHT);
-
-                        targetLabel.setStyle("-fx-border-color: lightskyblue; -fx-background-color: lightskyblue");
-
-                        group.getChildren().add(targetLabel);
-
-                        BooleanProperty property = board.getPropertyForTarget(target);
-                        property.addListener((observable, oldValue, newValue) -> {
-
-                            if (newValue.booleanValue()) {
-                                targetLabel.setStyle("-fx-border-color: greenyellow; -fx-background-color: greenyellow");
-                            } else {
-                                targetLabel.setStyle("-fx-border-color: lightskyblue; -fx-background-color: lightskyblue");
-                            }
-                        });
-                    }
-            );
-        });
-
         board.setPieceMovedHandler((piece, point) -> {
             Label label = piecesLabelMap.get(piece);
             if (label == null) {
                 throw new RuntimeException("Label not found for Piece");
-
             } else {
                 Timeline moving = new Timeline(Animation.INDEFINITE,
                         new KeyFrame(Duration.seconds(0.5), new KeyValue(label.translateXProperty(), point.getX() * CELL_WIDTH)),
@@ -100,6 +98,13 @@ public class BoardView extends Scene {
                 moving.play();
             }
         });
+
+        board.getCompleteProperty().addListener(((observable1, oldValue1, newValue1) -> {
+            if (newValue1.booleanValue()) {
+                Label l = new Label("Finished");
+                group.getChildren().add(l);
+            }
+        }));
     }
 
     public BoardView(Board board, BoardCellClickedHandler handler) {
