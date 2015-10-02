@@ -12,22 +12,22 @@ public class BoardDefinition {
     private int width;
     private int height;
     private boolean[][] wallCells;
-    private Point2D playerPoint;
+    private Cell playerCell;
 
     public static BoardDefinition fromString(final String boardDefinition) {
         if (boardDefinition.isEmpty()) {
             throw new RuntimeException("Board definition string cannot be empty.");
         }
 
-        Point2D playerPoint = null;
+        Cell playerCell = null;
         String rowStrings[] = boardDefinition.split("\n");
         int rowCount = rowStrings.length;
         int colCount = 0;
         List<PieceData> pieces = new ArrayList<>();
 
         boolean[][] wallCells = new boolean[rowStrings.length][];
-        Map<Character, Point2D> blockMap = new HashMap<>();
-        Map<Character, Point2D> targetMap = new HashMap<>();
+        Map<Character, Cell> blockMap = new HashMap<>();
+        Map<Character, Cell> targetMap = new HashMap<>();
 
         for (int row = 0; row < rowStrings.length; row++) {
             String rowString = rowStrings[row];
@@ -44,17 +44,17 @@ public class BoardDefinition {
 
                 // Check for the player.
                 if (charAtCell == '@') {
-                    playerPoint = new Point2D(col, row);
+                    playerCell = new Cell(row, col);
                 }
 
                 // Look for any other movable pieces.
                 if (charAtCell >= 'A' && charAtCell <= 'G') {
-                    blockMap.put((char) charAtCell, new Point2D(col, row));
+                    blockMap.put((char) charAtCell, new Cell(row, col));
                 }
 
                 // Look for any targets.
                 if (charAtCell >= 'a' && charAtCell <= 'g') {
-                    targetMap.put((char) charAtCell, new Point2D(col, row));
+                    targetMap.put((char) charAtCell, new Cell(row, col));
                 }
             }
         }
@@ -63,11 +63,11 @@ public class BoardDefinition {
         blockMap.forEach((pieceChar, piecePoint) -> {
             PieceData data = new PieceData();
             data.pieceText = String.valueOf(pieceChar);
-            data.piecePoint = piecePoint;
+            data.pieceCell = piecePoint;
 
             char possibleTargetChar = data.pieceText.toLowerCase(Locale.ENGLISH).charAt(0);
-            Point2D targetPoint = targetMap.get(possibleTargetChar);
-            if (targetPoint != null) {
+            Cell targetCell = targetMap.get(possibleTargetChar);
+            if (targetCell != null) {
                 data.targetText = data.pieceText.toLowerCase(Locale.ENGLISH);
                 targetMap.remove(possibleTargetChar);
             }
@@ -79,19 +79,18 @@ public class BoardDefinition {
         targetMap.forEach((targetChar, targetPoint) -> {
             PieceData data = new PieceData();
             data.targetText = String.valueOf(targetChar);
-            data.targetPoint = targetPoint;
+            data.targetCell = targetPoint;
             pieces.add(data);
         });
 
-
-        return new BoardDefinition(colCount, rowCount, wallCells, playerPoint, pieces);
+        return new BoardDefinition(colCount, rowCount, wallCells, playerCell, pieces);
     }
 
-    private BoardDefinition(int width, int height, boolean[][] wallCells, Point2D playerPoint, List<PieceData> pieces) {
+    private BoardDefinition(int width, int height, boolean[][] wallCells, Cell playerCell, List<PieceData> pieces) {
         this.width = width;
         this.height = height;
         this.wallCells = wallCells;
-        this.playerPoint = playerPoint;
+        this.playerCell = playerCell;
     }
 
     public int getWidth() {
@@ -107,14 +106,14 @@ public class BoardDefinition {
         return (rowWalls.length <= column) || rowWalls[column];
     }
 
-    public Optional<Point2D> getPlayerCell() {
-        return Optional.ofNullable(playerPoint);
+    public Optional<Cell> getPlayerCell() {
+        return Optional.ofNullable(playerCell);
     }
 
     public static class PieceData {
         String pieceText;
         String targetText;
-        Point2D piecePoint;
-        Point2D targetPoint;
+        Cell pieceCell;
+        Cell targetCell;
     }
 }

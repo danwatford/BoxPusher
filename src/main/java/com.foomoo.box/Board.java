@@ -4,7 +4,6 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.geometry.Point2D;
 
 import java.util.HashMap;
 import java.util.List;
@@ -26,8 +25,8 @@ import java.util.stream.Stream;
 public class Board {
 
     PieceMovedHandler pieceMovedHandler;
-    Piece playerPiece;
-    Map<Piece, Point2D> piecesMap = new HashMap<>();
+    Block playerBlock;
+    Map<Block, Cell> piecesMap = new HashMap<>();
     Map<Target, TargetData> targetsMap = new HashMap<>();
 
     BooleanProperty complete = new SimpleBooleanProperty();
@@ -42,14 +41,14 @@ public class Board {
     public Board(final BoardDefinition boardDefinition) {
         definition = boardDefinition;
 
-        definition.getPlayerCell().ifPresent(point -> {
-            playerPiece = new Piece("@");
-            piecesMap.put(playerPiece, point);
+        definition.getPlayerCell().ifPresent(cell -> {
+            playerBlock = new Block("@");
+            piecesMap.put(playerBlock, cell);
         });
     }
 
     /**
-     * Set the handler to be notified when a piece is moved.
+     * Set the handler to be notified when a block is moved.
      *
      * @param pieceMovedHandler Handler to call.
      */
@@ -78,38 +77,38 @@ public class Board {
     /**
      * Is the given cell exist on the board, i.e. is it bounded by the walls of the game.
      *
-     * @param point The cell to test.
+     * @param cell The cell to test.
      * @return True if the cell is on the board and bounded by the walls of the game.
      */
-    public boolean isSpaceOnBoard(final Point2D point) {
-        return (point.getX() < getCellColumns()) && (point.getY() < getCellRows()) && !definition.cellIsWall((int) point.getY(), (int) point.getX());
+    public boolean isSpaceOnBoard(final Cell cell) {
+        return (cell.getColumn() < getCellColumns()) && (cell.getRow() < getCellRows()) && !definition.cellIsWall((int) cell.getRow(), (int) cell.getColumn());
     }
 
     /**
      * Is the given cell available, i.e. not already occupied.
      *
-     * @param point The cell to test.
-     * @return True if the cell is in the game and not currently occupied by a Piece.
+     * @param cell The cell to test.
+     * @return True if the cell is in the game and not currently occupied by a Block.
      */
-    public boolean isSpaceFree(final Point2D point) {
-        return isSpaceOnBoard(point) && !getPieceAtCell(point).isPresent();
+    public boolean isSpaceFree(final Cell cell) {
+        return isSpaceOnBoard(cell) && !getPieceAtCell(cell).isPresent();
     }
 
     /**
-     * Add a new target to the game, located at the given point and associated with the given piece.
+     * Add a new target to the game, located at the given cell and associated with the given block.
      *
      * @param target The new target.
-     * @param piece  The piece associated with the target.
-     * @param point  The location to place the target.
-     * @return A boolean property used to track whether the target has been completed (i.e. the associated piece is
-     * located at the same point as the target.)
+     * @param block  The block associated with the target.
+     * @param cell  The location to place the target.
+     * @return A boolean property used to track whether the target has been completed (i.e. the associated block is
+     * located at the same cell as the target.)
      */
-    public Property<Boolean> addTargetForPiece(final Target target, final Piece piece, final Point2D point) {
+    public Property<Boolean> addTargetForPiece(final Target target, final Block block, final Cell cell) {
         BooleanProperty property = new SimpleBooleanProperty();
 
         TargetData targetData = new TargetData();
-        targetData.point = point;
-        targetData.piece = piece;
+        targetData.cell = cell;
+        targetData.block = block;
         targetData.complete = property;
 
         targetsMap.put(target, targetData);
@@ -173,8 +172,8 @@ public class Board {
      * @return The location.
      * @throws RuntimeException if the Target is not part of this Board.
      */
-    public Point2D getCellForTarget(final Target target) {
-        return getTargetData(target).point;
+    public Cell getCellForTarget(final Target target) {
+        return getTargetData(target).cell;
     }
 
     /**
@@ -187,52 +186,52 @@ public class Board {
     }
 
     /**
-     * Add a new piece to the board.
+     * Add a new block to the board.
      *
-     * @param piece The Piece to add.
-     * @param point The cell to add the piece to.
-     * @throws RuntimeException If the piece cannot be added due to the cell not being free.
+     * @param block The Block to add.
+     * @param cell The cell to add the block to.
+     * @throws RuntimeException If the block cannot be added due to the cell not being free.
      */
-    public void addPiece(final Piece piece, final Point2D point) {
-        if (isSpaceFree(point)) {
-            piecesMap.put(piece, point);
+    public void addPiece(final Block block, final Cell cell) {
+        if (isSpaceFree(cell)) {
+            piecesMap.put(block, cell);
         } else {
-            throw new RuntimeException("Cannot add piece at cell, location in use or not valid for board: " + point);
+            throw new RuntimeException("Cannot add block at cell, location in use or not valid for board: " + cell);
         }
     }
 
     /**
-     * Get the cell for the given piece.
+     * Get the cell for the given block.
      *
-     * @param piece The piece to find the cell for.
+     * @param block The block to find the cell for.
      * @return The cell.
-     * @throws RuntimeException if Piece is not part of this Board.
+     * @throws RuntimeException if Block is not part of this Board.
      */
-    public Point2D getCellForPiece(final Piece piece) {
-        Point2D point = piecesMap.get(piece);
-        if (point == null) {
-            throw new RuntimeException("Piece not not part of board: " + piece);
+    public Cell getCellForPiece(final Block block) {
+        Cell cell = piecesMap.get(block);
+        if (cell == null) {
+            throw new RuntimeException("Block not not part of board: " + block);
         }
-        return point;
+        return cell;
     }
 
     /**
-     * Find the Piece, if any, at the given Cell.
+     * Find the Block, if any, at the given Cell.
      *
-     * @param point The cell to check for a Piece.
-     * @return An Optional of the Piece at the requested Cell. Optional will be absent if no Piece was found.
+     * @param cell The cell to check for a Block.
+     * @return An Optional of the Block at the requested Cell. Optional will be absent if no Block was found.
      */
-    public Optional<Piece> getPieceAtCell(final Point2D point) {
-        return piecesMap.entrySet().stream().filter(entry -> entry.getValue().equals(point)).map(Map.Entry::getKey).findAny();
+    public Optional<Block> getPieceAtCell(final Cell cell) {
+        return piecesMap.entrySet().stream().filter(entry -> entry.getValue().equals(cell)).map(Map.Entry::getKey).findAny();
     }
 
     /**
-     * Returns the player Piece, if a player has been defined.
+     * Returns the player Block, if a player has been defined.
      *
-     * @return Optional of Piece if a player has been defined, else absent.
+     * @return Optional of Block if a player has been defined, else absent.
      */
-    public Optional<Piece> getPlayerPiece() {
-        return Optional.ofNullable(playerPiece);
+    public Optional<Block> getPlayerBlock() {
+        return Optional.ofNullable(playerBlock);
     }
 
     /**
@@ -241,13 +240,13 @@ public class Board {
      *
      * @return Stream of cell positions.
      */
-    public Stream<Point2D> cellPositions() {
+    public Stream<Cell> cellPositions() {
         Stream<Integer> xIndexStream = IntStream.range(0, getCellColumns()).boxed();
 
         return xIndexStream.flatMap(x -> {
             IntStream yIndexStream = IntStream.range(0, getCellRows());
 
-            return yIndexStream.mapToObj(y -> new Point2D(x, y));
+            return yIndexStream.mapToObj(y -> new Cell(y, x));
         });
     }
 
@@ -256,48 +255,48 @@ public class Board {
      *
      * @return Stream of cell positions.
      */
-    public Stream<Point2D> cellPositionsOnBoard() {
+    public Stream<Cell> cellPositionsOnBoard() {
         return cellPositions().filter(this::isSpaceOnBoard);
     }
 
     /**
-     * Move the given Piece to the given cell location.
+     * Move the given Block to the given cell location.
      * The move will only be performed if it is valid, i.e. the space is on the board, is within one space
-     * horizontally or vertically, and if the space is already occupied that the occupying piece can be pushed
+     * horizontally or vertically, and if the space is already occupied that the occupying block can be pushed
      * out of the way.
      *
-     * @param piece       The Piece to move.
-     * @param targetPoint The location to move the piece to.
+     * @param block       The Block to move.
+     * @param targetCell The location to move the block to.
      */
-    public void movePieceTo(final Piece piece, final Point2D targetPoint) {
-        movePieceTo(piece, targetPoint, 1, false);
+    public void movePieceTo(final Block block, final Cell targetCell) {
+        movePieceTo(block, targetCell, 1, false);
     }
 
     /**
-     * Sets the location of the given Piece to the given Cell.
+     * Sets the location of the given Block to the given Cell.
      *
-     * @param piece The Piece to set to the new location.
-     * @param point The Cell to place the Piece at.
-     * @throws RuntimeException if the Piece is not part of this Board.
+     * @param block The Block to set to the new location.
+     * @param cell The Cell to place the Block at.
+     * @throws RuntimeException if the Block is not part of this Board.
      */
-    private void setPiecePosition(final Piece piece, final Point2D point) {
-        Point2D currentPoint = getCellForPiece(piece);
+    private void setPiecePosition(final Block block, final Cell cell) {
+        Cell currentCell = getCellForPiece(block);
 
-        // Do nothing if there is no change in position requested for the piece.
-        if (currentPoint.equals(point)) {
+        // Do nothing if there is no change in position requested for the block.
+        if (currentCell.equals(cell)) {
             return;
         }
 
-        piecesMap.put(piece, point);
+        piecesMap.put(block, cell);
         if (pieceMovedHandler != null) {
-            pieceMovedHandler.pieceMoved(piece, point);
+            pieceMovedHandler.pieceMoved(block, cell);
         }
 
-        // If there is a target for this piece, update its complete property.
-        Optional<Map.Entry<Target, TargetData>> possibleTarget = targetsMap.entrySet().stream().filter(entry -> entry.getValue().piece.equals(piece)).findAny();
+        // If there is a target for this block, update its complete property.
+        Optional<Map.Entry<Target, TargetData>> possibleTarget = targetsMap.entrySet().stream().filter(entry -> entry.getValue().block.equals(block)).findAny();
         possibleTarget.ifPresent(entry -> {
                     TargetData data = entry.getValue();
-                    data.complete.set(data.point.equals(point));
+                    data.complete.set(data.cell.equals(cell));
                 }
         );
     }
@@ -305,48 +304,48 @@ public class Board {
     /**
      * Tests whether the distance between the start and end location is permitted.
      *
-     * @param startPoint The start point of the move.
-     * @param endPoint   The end point of the move.
+     * @param startCell The start cell of the move.
+     * @param endCell   The end cell of the move.
      * @return True if the move is permitted, false otherwise. Note this does not take into account whether the end location
      * is occupied and whether any occurpying block can be pushed out of the way.
      */
-    private boolean moveVectorPermitted(final Point2D startPoint, final Point2D endPoint) {
-        Point2D diff = endPoint.subtract(startPoint);
-        return (Math.abs(diff.getX()) == 1) ^ (Math.abs(diff.getY()) == 1);
+    private boolean moveVectorPermitted(final Cell startCell, final Cell endCell) {
+        Cell diff = endCell.subtract(startCell);
+        return (Math.abs(diff.getRow()) == 1) ^ (Math.abs(diff.getColumn()) == 1);
     }
 
     /**
-     * If possible, moves the given Piece to the specified cell, pushing other pieces out of the way if needed.
+     * If possible, moves the given Block to the specified cell, pushing other pieces out of the way if needed.
      * <p>
      * The number of blocks which can be pushed is specified by <code>canPushBlockCount</code>.
      * <p>
      * If <code>dryRun</code> is true, don't perform the move, just report on whether it is possible.
      * <p>
-     * Other pieces will only be pushed out of the way if they can move to another cell in the same direction as the requested piece.
-     * If the piece to be moved/pushed is blocked by a wall, or another piece if the number of pieces that can be moved has been
+     * Other pieces will only be pushed out of the way if they can move to another cell in the same direction as the requested block.
+     * If the block to be moved/pushed is blocked by a wall, or another block if the number of pieces that can be moved has been
      * exceeded, then the move cannot be completed.
      * <p>
      * If any pieces are moved the board's PieceMovedHandler will be notified.
      *
-     * @param piece             The Piece to move.
-     * @param targetPoint       The cell to move the Piece to.
-     * @param canPushBlockCount The number of Pieces the given Piece can move if the target cell is occupied.
+     * @param block             The Block to move.
+     * @param targetCell       The cell to move the Block to.
+     * @param canPushBlockCount The number of Pieces the given Block can move if the target cell is occupied.
      * @param dryRun            If true, don't actually perform the move, just report on whether it is possible.
      * @return The move was succesfully performed.
      */
-    private boolean movePieceTo(final Piece piece, final Point2D targetPoint, final int canPushBlockCount, final boolean dryRun) {
-        Point2D currentPoint = piecesMap.get(piece);
-        if (!moveVectorPermitted(currentPoint, targetPoint)) {
+    private boolean movePieceTo(final Block block, final Cell targetCell, final int canPushBlockCount, final boolean dryRun) {
+        Cell currentCell = piecesMap.get(block);
+        if (!moveVectorPermitted(currentCell, targetCell)) {
             return false;
         }
 
-        if (!isSpaceOnBoard(targetPoint)) {
+        if (!isSpaceOnBoard(targetCell)) {
             return false;
         }
 
-        if (isSpaceFree(targetPoint)) {
+        if (isSpaceFree(targetCell)) {
             if (!dryRun) {
-                setPiecePosition(piece, targetPoint);
+                setPiecePosition(block, targetCell);
             }
             return true;
         }
@@ -355,16 +354,16 @@ public class Board {
             return false;
         }
 
-        Optional<Piece> possiblePiece = getPieceAtCell(targetPoint);
+        Optional<Block> possiblePiece = getPieceAtCell(targetCell);
         if (!possiblePiece.isPresent()) {
-            throw new RuntimeException("Piece missing at point but marked as occupied: " + targetPoint);
+            throw new RuntimeException("Block missing at cell but marked as occupied: " + targetCell);
         }
 
-        Point2D diff = targetPoint.subtract(piecesMap.get(piece));
+        Cell diff = targetCell.subtract(piecesMap.get(block));
 
-        if (movePieceTo(possiblePiece.get(), targetPoint.add(diff), canPushBlockCount - 1, dryRun)) {
+        if (movePieceTo(possiblePiece.get(), targetCell.add(diff), canPushBlockCount - 1, dryRun)) {
             if (!dryRun) {
-                setPiecePosition(piece, targetPoint);
+                setPiecePosition(block, targetCell);
             }
             return true;
         }
@@ -379,25 +378,25 @@ public class Board {
     public boolean areTargetsMet() {
 
         return targetsMap.values().stream().map(targetData -> {
-            Point2D piecePoint = getCellForPiece(targetData.piece);
-            return piecePoint.equals(targetData.point);
+            Cell cell = getCellForPiece(targetData.block);
+            return cell.equals(targetData.cell);
         }).allMatch(Boolean::booleanValue);
     }
 
     /**
-     * Interface to be implemented by the handler call when a Piece is moved.
+     * Interface to be implemented by the handler call when a Block is moved.
      */
     @FunctionalInterface
     interface PieceMovedHandler {
-        void pieceMoved(Piece piece, Point2D newCell);
+        void pieceMoved(Block block, Cell newCell);
     }
 
     /**
      * Storage class for data related to a target.
      */
     private static class TargetData {
-        Point2D point;
-        Piece piece;
+        Cell cell;
+        Block block;
         BooleanProperty complete;
     }
 }

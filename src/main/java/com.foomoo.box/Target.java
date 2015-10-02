@@ -1,13 +1,15 @@
 package com.foomoo.box;
 
-public class Target {
-    private String text;
-
-    public Target(String str) {
-        text = str;
-    }
-
-    public String getText() {
-        return text;
+/**
+ * Represents a fixed space on a board intended to be the target location for a movable block.
+ */
+public class Target extends Block {
+    /**
+     * Constructs a Target with the given associated text.
+     *
+     * @param text The associated text.
+     */
+    public Target(String text) {
+        super(text);
     }
 }

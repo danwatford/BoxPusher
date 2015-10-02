@@ -4,9 +4,7 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
-import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -19,7 +17,6 @@ import javafx.util.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class BoardView extends Scene {
     private static final int CELL_WIDTH = 100;
@@ -29,7 +26,7 @@ public class BoardView extends Scene {
     private final Group group;
     private final BoardCellClickedHandler cellClickedHandler;
 
-    private final Map<Piece, Label> piecesLabelMap = new HashMap<>();
+    private final Map<Block, Label> piecesLabelMap = new HashMap<>();
 
     private BoardView(Board board, BoardCellClickedHandler handler, Group group) {
         super(group, board.getCellColumns() * CELL_WIDTH, board.getCellRows() * CELL_HEIGHT, Color.WHITE);
@@ -38,11 +35,11 @@ public class BoardView extends Scene {
         this.group = group;
 
         board.targets().forEach(target -> {
-            Point2D cell = board.getCellForTarget(target);
+            Cell cell = board.getCellForTarget(target);
             Label targetLabel = new Label(target.getText());
             targetLabel.setFont(new Font(CELL_HEIGHT * 3 / 4));
-            targetLabel.setTranslateX(cell.getX() * CELL_WIDTH);
-            targetLabel.setTranslateY(cell.getY() * CELL_HEIGHT);
+            targetLabel.setTranslateX(cell.getColumn() * CELL_WIDTH);
+            targetLabel.setTranslateY(cell.getRow() * CELL_HEIGHT);
 
             targetLabel.setStyle("-fx-border-color: lightskyblue; -fx-background-color: lightskyblue");
 
@@ -60,7 +57,7 @@ public class BoardView extends Scene {
         });
 
         board.cellPositionsOnBoard().forEach(cell -> {
-            Rectangle r = new Rectangle(CELL_WIDTH * cell.getX(), CELL_HEIGHT * cell.getY(), CELL_WIDTH, CELL_HEIGHT);
+            Rectangle r = new Rectangle(CELL_WIDTH * cell.getColumn(), CELL_HEIGHT * cell.getRow(), CELL_WIDTH, CELL_HEIGHT);
             r.setFill(Color.rgb(0, 0, 0, 0));
             r.setStrokeType(StrokeType.INSIDE);
             r.setStroke(Color.BLACK);
@@ -72,28 +69,28 @@ public class BoardView extends Scene {
             group.getChildren().add(r);
 
             // Any pieces at this cell position?
-            Optional<Piece> optionalPiece = board.getPieceAtCell(cell);
+            Optional<Block> optionalPiece = board.getPieceAtCell(cell);
             if (optionalPiece.isPresent()) {
-                Piece piece = optionalPiece.get();
-                Label label = new Label(piece.getText());
+                Block block = optionalPiece.get();
+                Label label = new Label(block.getText());
                 label.setFont(new Font(CELL_HEIGHT / 2));
-                label.setTranslateX(cell.getX() * CELL_WIDTH);
-                label.setTranslateY(cell.getY() * CELL_HEIGHT);
+                label.setTranslateX(cell.getRow() * CELL_WIDTH);
+                label.setTranslateY(cell.getColumn() * CELL_HEIGHT);
 
                 group.getChildren().add(label);
 
-                piecesLabelMap.put(piece, label);
+                piecesLabelMap.put(block, label);
             }
         });
 
         board.setPieceMovedHandler((piece, point) -> {
             Label label = piecesLabelMap.get(piece);
             if (label == null) {
-                throw new RuntimeException("Label not found for Piece");
+                throw new RuntimeException("Label not found for Block");
             } else {
                 Timeline moving = new Timeline(Animation.INDEFINITE,
-                        new KeyFrame(Duration.seconds(0.5), new KeyValue(label.translateXProperty(), point.getX() * CELL_WIDTH)),
-                        new KeyFrame(Duration.seconds(0.5), new KeyValue(label.translateYProperty(), point.getY() * CELL_HEIGHT))
+                        new KeyFrame(Duration.seconds(0.5), new KeyValue(label.translateXProperty(), point.getColumn() * CELL_WIDTH)),
+                        new KeyFrame(Duration.seconds(0.5), new KeyValue(label.translateYProperty(), point.getRow() * CELL_HEIGHT))
                 );
                 moving.play();
             }
@@ -114,6 +111,6 @@ public class BoardView extends Scene {
 
     @FunctionalInterface
     interface BoardCellClickedHandler {
-        void cellClicked(Point2D clickedCell);
+        void cellClicked(Cell clickedCell);
     }
 }

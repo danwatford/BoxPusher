@@ -2,7 +2,6 @@ package com.foomoo.box;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.geometry.Point2D;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -12,10 +11,10 @@ import java.util.Optional;
 
 public class App extends Application {
 
-    private static final Point2D UP_POINT = new Point2D(0, -1);
-    private static final Point2D DOWN_POINT = new Point2D(0, 1);
-    private static final Point2D LEFT_POINT = new Point2D(-1, 0);
-    private static final Point2D RIGHT_POINT = new Point2D(1, 0);
+    private static final Cell UP_CELL = new Cell(-1,0);
+    private static final Cell DOWN_CELL = new Cell(1,0);
+    private static final Cell LEFT_CELL = new Cell(0,-1);
+    private static final Cell RIGHT_CELL = new Cell(0, 1);
 
     private static final String BOARD_DEF = "" +
             "XXXXXX\n" +
@@ -29,12 +28,12 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-/*        Piece player = new Piece("@");
+/*        Block player = new Block("@");
         board.addPiece(player, new Point2D(3, 4));
 
-        Piece b1 = new Piece("A");
+        Block b1 = new Block("A");
         board.addPiece(b1, new Point2D(3, 3));
-        Piece b2 = new Piece("B");
+        Block b2 = new Block("B");
         board.addPiece(b2, new Point2D(5, 5));
 
         Target t1 = new Target("a");
@@ -42,7 +41,7 @@ public class App extends Application {
         board.addTargetForPiece(t1, b1, new Point2D(1, 7));
         board.addTargetForPiece(t2, b2, new Point2D(2, 2));*/
 
-        Optional<Piece> optionalPlayer = board.getPlayerPiece();
+        Optional<Block> optionalPlayer = board.getPlayerBlock();
         BoardView view = new BoardView(board, (cell) -> {
             optionalPlayer.ifPresent(player -> board.movePieceTo(player, cell));
         });
@@ -54,23 +53,23 @@ public class App extends Application {
         stage.show();
     }
 
-    private void addKeyHandler(Scene scene, Piece piece) {
+    private void addKeyHandler(Scene scene, Block block) {
         scene.addEventHandler(KeyEvent.KEY_PRESSED, ke -> {
-            Point2D currentPoint = board.getCellForPiece(piece);
+            Cell currentCell = board.getCellForPiece(block);
 
             KeyCode keyCode = ke.getCode();
             switch (keyCode) {
                 case UP:
-                    board.movePieceTo(piece, currentPoint.add(UP_POINT));
+                    board.movePieceTo(block, currentCell.add(UP_CELL));
                     break;
                 case LEFT:
-                    board.movePieceTo(piece, currentPoint.add(LEFT_POINT));
+                    board.movePieceTo(block, currentCell.add(LEFT_CELL));
                     break;
                 case DOWN:
-                    board.movePieceTo(piece, currentPoint.add(DOWN_POINT));
+                    board.movePieceTo(block, currentCell.add(DOWN_CELL));
                     break;
                 case RIGHT:
-                    board.movePieceTo(piece, currentPoint.add(RIGHT_POINT));
+                    board.movePieceTo(block, currentCell.add(RIGHT_CELL));
                     break;
                 case ESCAPE:
                     Platform.exit();
