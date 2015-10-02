@@ -26,10 +26,27 @@ import java.util.stream.Stream;
 public class Board {
 
     PieceMovedHandler pieceMovedHandler;
+    Piece playerPiece;
     Map<Piece, Point2D> piecesMap = new HashMap<>();
     Map<Target, TargetData> targetsMap = new HashMap<>();
 
     BooleanProperty complete = new SimpleBooleanProperty();
+
+    final BoardDefinition definition;
+
+    /**
+     * Construct a Board using the given BoardDefinition to define the starting state.
+     *
+     * @param boardDefinition The definition to set the Board's start state.
+     */
+    public Board(final BoardDefinition boardDefinition) {
+        definition = boardDefinition;
+
+        definition.getPlayerCell().ifPresent(point -> {
+            playerPiece = new Piece("@");
+            piecesMap.put(playerPiece, point);
+        });
+    }
 
     /**
      * Set the handler to be notified when a piece is moved.
@@ -46,7 +63,7 @@ public class Board {
      * @return The number of cells required to cover the width of the Board.
      */
     public int getCellColumns() {
-        return 9;
+        return definition.getWidth();
     }
 
     /**
@@ -55,7 +72,7 @@ public class Board {
      * @return The number of cells required to cover the height of the Board.
      */
     public int getCellRows() {
-        return 16;
+        return definition.getHeight();
     }
 
     /**
@@ -65,7 +82,7 @@ public class Board {
      * @return True if the cell is on the board and bounded by the walls of the game.
      */
     public boolean isSpaceOnBoard(final Point2D point) {
-        return (point.getY() >= 1 && point.getY() < getCellRows() - 1 && point.getX() >= 1 && point.getX() < getCellColumns() - 1);
+        return (point.getX() < getCellColumns()) && (point.getY() < getCellRows()) && !definition.cellIsWall((int) point.getY(), (int) point.getX());
     }
 
     /**
@@ -207,6 +224,15 @@ public class Board {
      */
     public Optional<Piece> getPieceAtCell(final Point2D point) {
         return piecesMap.entrySet().stream().filter(entry -> entry.getValue().equals(point)).map(Map.Entry::getKey).findAny();
+    }
+
+    /**
+     * Returns the player Piece, if a player has been defined.
+     *
+     * @return Optional of Piece if a player has been defined, else absent.
+     */
+    public Optional<Piece> getPlayerPiece() {
+        return Optional.ofNullable(playerPiece);
     }
 
     /**

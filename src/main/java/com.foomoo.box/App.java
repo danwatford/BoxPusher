@@ -8,6 +8,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
+import java.util.Optional;
+
 public class App extends Application {
 
     private static final Point2D UP_POINT = new Point2D(0, -1);
@@ -15,12 +17,19 @@ public class App extends Application {
     private static final Point2D LEFT_POINT = new Point2D(-1, 0);
     private static final Point2D RIGHT_POINT = new Point2D(1, 0);
 
+    private static final String BOARD_DEF = "" +
+            "XXXXXX\n" +
+            "XX   X\n" +
+            "X    X\n" +
+            "X   @X\n" +
+            "X  XXX\n" +
+            "XXX";
 
-    private Board board = new Board();
+    private Board board = new Board(BoardDefinition.fromString(BOARD_DEF));
 
     @Override
     public void start(Stage stage) throws Exception {
-        Piece player = new Piece("@");
+/*        Piece player = new Piece("@");
         board.addPiece(player, new Point2D(3, 4));
 
         Piece b1 = new Piece("A");
@@ -31,15 +40,16 @@ public class App extends Application {
         Target t1 = new Target("a");
         Target t2 = new Target("b");
         board.addTargetForPiece(t1, b1, new Point2D(1, 7));
-        board.addTargetForPiece(t2, b2, new Point2D(2, 2));
+        board.addTargetForPiece(t2, b2, new Point2D(2, 2));*/
 
+        Optional<Piece> optionalPlayer = board.getPlayerPiece();
         BoardView view = new BoardView(board, (cell) -> {
-            board.movePieceTo(player, cell);
+            optionalPlayer.ifPresent(player -> board.movePieceTo(player, cell));
         });
 
         stage.setTitle("Box Pusher");
 
-        addKeyHandler(view, player);
+        optionalPlayer.ifPresent(player -> addKeyHandler(view, player));
         stage.setScene(view);
         stage.show();
     }
