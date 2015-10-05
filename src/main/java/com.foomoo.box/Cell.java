@@ -43,4 +43,20 @@ public class Cell {
     public Cell add(Cell cell) {
         return new Cell(getRow() + cell.getRow(), getColumn() + cell.getColumn());
     }
+
+    public String toString() {
+        return String.format("Cell(%d,%d)", row, column);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        } else if (obj instanceof Cell) {
+            Cell cell = (Cell) obj;
+            return getRow() == cell.getRow() && getColumn() == cell.getColumn();
+        } else {
+            return false;
+        }
+    }
 }

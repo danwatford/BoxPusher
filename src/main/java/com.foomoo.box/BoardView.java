@@ -59,7 +59,7 @@ public class BoardView extends Scene {
         board.cellPositionsOnBoard().forEach(cell -> {
             Rectangle r = new Rectangle(CELL_WIDTH * cell.getColumn(), CELL_HEIGHT * cell.getRow(), CELL_WIDTH, CELL_HEIGHT);
             r.setFill(Color.rgb(0, 0, 0, 0));
-            r.setStrokeType(StrokeType.INSIDE);
+            r.setStrokeType(StrokeType.CENTERED);
             r.setStroke(Color.BLACK);
 
             r.setOnMouseClicked((mouseEvent) -> {
@@ -74,8 +74,8 @@ public class BoardView extends Scene {
                 Block block = optionalPiece.get();
                 Label label = new Label(block.getText());
                 label.setFont(new Font(CELL_HEIGHT / 2));
-                label.setTranslateX(cell.getRow() * CELL_WIDTH);
-                label.setTranslateY(cell.getColumn() * CELL_HEIGHT);
+                label.setTranslateX(cell.getColumn() * CELL_WIDTH);
+                label.setTranslateY(cell.getRow() * CELL_HEIGHT);
 
                 group.getChildren().add(label);
 

@@ -12,4 +12,8 @@ public class Player extends Block {
     public Player(String text) {
         super(text);
     }
+
+    public String toString() {
+        return String.format("Player(%s)", getText());
+    }
 }

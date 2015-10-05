@@ -4,6 +4,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.WritableValue;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,14 +25,14 @@ import java.util.stream.Stream;
  */
 public class Board {
 
-    PieceMovedHandler pieceMovedHandler;
-    Block playerBlock;
-    Map<Block, Cell> piecesMap = new HashMap<>();
-    Map<Target, TargetData> targetsMap = new HashMap<>();
-
-    BooleanProperty complete = new SimpleBooleanProperty();
-
     final BoardDefinition definition;
+    Player player;
+    final Map<Block, Cell> blocksMap = new HashMap<>();
+    final Map<Target, TargetData> targetsDataMap = new HashMap<>();
+
+    final BooleanProperty complete = new SimpleBooleanProperty();
+
+    PieceMovedHandler pieceMovedHandler;
 
     /**
      * Construct a Board using the given BoardDefinition to define the starting state.
@@ -42,8 +43,30 @@ public class Board {
         definition = boardDefinition;
 
         definition.getPlayerCell().ifPresent(cell -> {
-            playerBlock = new Block("@");
-            piecesMap.put(playerBlock, cell);
+            player = new Player("@");
+            blocksMap.put(player, cell);
+        });
+
+        blocksMap.putAll(boardDefinition.getBlockCells());
+
+        boardDefinition.getTargetCells().forEach((target, cell) -> {
+            BooleanProperty property = new SimpleBooleanProperty();
+
+            TargetData targetData = new TargetData();
+            targetData.cell = cell;
+            targetData.complete = property;
+
+            targetsDataMap.put(target, targetData);
+
+            rebindCompletionProperty();
+        });
+
+        boardDefinition.getBlockTargetMap().forEach((block, target) -> {
+            TargetData data = targetsDataMap.computeIfAbsent(target, t -> {
+                throw new RuntimeException("Target does not exist on Board: " + t);
+            });
+
+            data.block = block;
         });
     }
 
@@ -81,7 +104,7 @@ public class Board {
      * @return True if the cell is on the board and bounded by the walls of the game.
      */
     public boolean isSpaceOnBoard(final Cell cell) {
-        return (cell.getColumn() < getCellColumns()) && (cell.getRow() < getCellRows()) && !definition.cellIsWall((int) cell.getRow(), (int) cell.getColumn());
+        return (cell.getColumn() < getCellColumns()) && (cell.getRow() < getCellRows()) && !definition.cellIsWall(cell.getRow(), cell.getColumn());
     }
 
     /**
@@ -95,38 +118,12 @@ public class Board {
     }
 
     /**
-     * Add a new target to the game, located at the given cell and associated with the given block.
-     *
-     * @param target The new target.
-     * @param block  The block associated with the target.
-     * @param cell  The location to place the target.
-     * @return A boolean property used to track whether the target has been completed (i.e. the associated block is
-     * located at the same cell as the target.)
-     */
-    public Property<Boolean> addTargetForPiece(final Target target, final Block block, final Cell cell) {
-        BooleanProperty property = new SimpleBooleanProperty();
-
-        TargetData targetData = new TargetData();
-        targetData.cell = cell;
-        targetData.block = block;
-        targetData.complete = property;
-
-        targetsMap.put(target, targetData);
-
-        rebindCompletionProperty();
-
-        return property;
-    }
-
-    /**
      * Rebinds the complete property to be dependant on all complete Property objects related to the Board's Targets.
      */
     private void rebindCompletionProperty() {
         complete.unbind();
-        List<Property<Boolean>> targetProperties = targetsMap.values().stream().map(targetData -> targetData.complete).collect(Collectors.toList());
-        complete.bind(Bindings.createBooleanBinding(() -> {
-                    return targetProperties.stream().map(prop -> prop.getValue()).allMatch(Boolean::booleanValue);
-                },
+        List<Property<Boolean>> targetProperties = targetsDataMap.values().stream().map(targetData -> targetData.complete).collect(Collectors.toList());
+        complete.bind(Bindings.createBooleanBinding(() -> targetProperties.stream().map(WritableValue::getValue).allMatch(Boolean::booleanValue),
                 targetProperties.toArray(new Property[1])));
     }
 
@@ -147,11 +144,9 @@ public class Board {
      * @throws RuntimeException if the Target is not part of this Board.
      */
     private TargetData getTargetData(final Target target) {
-        TargetData data = targetsMap.get(target);
-        if (data == null) {
-            throw new RuntimeException("Target does not exist on Board: " + target);
-        }
-        return data;
+        return targetsDataMap.computeIfAbsent(target, t -> {
+            throw new RuntimeException("Target does not exist on Board: " + t);
+        });
     }
 
     /**
@@ -182,22 +177,7 @@ public class Board {
      * @return A Stream of Targets
      */
     public Stream<Target> targets() {
-        return targetsMap.keySet().stream();
-    }
-
-    /**
-     * Add a new block to the board.
-     *
-     * @param block The Block to add.
-     * @param cell The cell to add the block to.
-     * @throws RuntimeException If the block cannot be added due to the cell not being free.
-     */
-    public void addPiece(final Block block, final Cell cell) {
-        if (isSpaceFree(cell)) {
-            piecesMap.put(block, cell);
-        } else {
-            throw new RuntimeException("Cannot add block at cell, location in use or not valid for board: " + cell);
-        }
+        return targetsDataMap.keySet().stream();
     }
 
     /**
@@ -208,7 +188,7 @@ public class Board {
      * @throws RuntimeException if Block is not part of this Board.
      */
     public Cell getCellForPiece(final Block block) {
-        Cell cell = piecesMap.get(block);
+        Cell cell = blocksMap.get(block);
         if (cell == null) {
             throw new RuntimeException("Block not not part of board: " + block);
         }
@@ -222,7 +202,7 @@ public class Board {
      * @return An Optional of the Block at the requested Cell. Optional will be absent if no Block was found.
      */
     public Optional<Block> getPieceAtCell(final Cell cell) {
-        return piecesMap.entrySet().stream().filter(entry -> entry.getValue().equals(cell)).map(Map.Entry::getKey).findAny();
+        return blocksMap.entrySet().stream().filter(entry -> entry.getValue().equals(cell)).map(Map.Entry::getKey).findAny();
     }
 
     /**
@@ -230,8 +210,8 @@ public class Board {
      *
      * @return Optional of Block if a player has been defined, else absent.
      */
-    public Optional<Block> getPlayerBlock() {
-        return Optional.ofNullable(playerBlock);
+    public Optional<Block> getPlayer() {
+        return Optional.ofNullable(player);
     }
 
     /**
@@ -265,18 +245,18 @@ public class Board {
      * horizontally or vertically, and if the space is already occupied that the occupying block can be pushed
      * out of the way.
      *
-     * @param block       The Block to move.
+     * @param block      The Block to move.
      * @param targetCell The location to move the block to.
      */
     public void movePieceTo(final Block block, final Cell targetCell) {
-        movePieceTo(block, targetCell, 1, false);
+        movePieceTo(block, targetCell, 2, false);
     }
 
     /**
      * Sets the location of the given Block to the given Cell.
      *
      * @param block The Block to set to the new location.
-     * @param cell The Cell to place the Block at.
+     * @param cell  The Cell to place the Block at.
      * @throws RuntimeException if the Block is not part of this Board.
      */
     private void setPiecePosition(final Block block, final Cell cell) {
@@ -287,13 +267,14 @@ public class Board {
             return;
         }
 
-        piecesMap.put(block, cell);
+        blocksMap.put(block, cell);
         if (pieceMovedHandler != null) {
             pieceMovedHandler.pieceMoved(block, cell);
         }
 
         // If there is a target for this block, update its complete property.
-        Optional<Map.Entry<Target, TargetData>> possibleTarget = targetsMap.entrySet().stream().filter(entry -> entry.getValue().block.equals(block)).findAny();
+        Optional<Map.Entry<Target, TargetData>> possibleTarget;
+        possibleTarget = targetsDataMap.entrySet().stream().filter(entry -> block.equals(entry.getValue().block)).findAny();
         possibleTarget.ifPresent(entry -> {
                     TargetData data = entry.getValue();
                     data.complete.set(data.cell.equals(cell));
@@ -328,13 +309,13 @@ public class Board {
      * If any pieces are moved the board's PieceMovedHandler will be notified.
      *
      * @param block             The Block to move.
-     * @param targetCell       The cell to move the Block to.
+     * @param targetCell        The cell to move the Block to.
      * @param canPushBlockCount The number of Pieces the given Block can move if the target cell is occupied.
      * @param dryRun            If true, don't actually perform the move, just report on whether it is possible.
      * @return The move was succesfully performed.
      */
     private boolean movePieceTo(final Block block, final Cell targetCell, final int canPushBlockCount, final boolean dryRun) {
-        Cell currentCell = piecesMap.get(block);
+        Cell currentCell = blocksMap.get(block);
         if (!moveVectorPermitted(currentCell, targetCell)) {
             return false;
         }
@@ -359,7 +340,7 @@ public class Board {
             throw new RuntimeException("Block missing at cell but marked as occupied: " + targetCell);
         }
 
-        Cell diff = targetCell.subtract(piecesMap.get(block));
+        Cell diff = targetCell.subtract(blocksMap.get(block));
 
         if (movePieceTo(possiblePiece.get(), targetCell.add(diff), canPushBlockCount - 1, dryRun)) {
             if (!dryRun) {
@@ -368,19 +349,6 @@ public class Board {
             return true;
         }
         return false;
-    }
-
-    /**
-     * Tests whether all targets have been met.
-     *
-     * @return True if all targets met, false otherwise.
-     */
-    public boolean areTargetsMet() {
-
-        return targetsMap.values().stream().map(targetData -> {
-            Cell cell = getCellForPiece(targetData.block);
-            return cell.equals(targetData.cell);
-        }).allMatch(Boolean::booleanValue);
     }
 
     /**

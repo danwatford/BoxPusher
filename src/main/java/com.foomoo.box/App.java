@@ -17,31 +17,22 @@ public class App extends Application {
     private static final Cell RIGHT_CELL = new Cell(0, 1);
 
     private static final String BOARD_DEF = "" +
-            "XXXXXX\n" +
-            "XX   X\n" +
-            "X    X\n" +
-            "X   @X\n" +
-            "X  XXX\n" +
+            "XXXXXXXX\n" +
+            "XX     X\n" +
+            "X  a     cX\n" +
+            "X  ABC  X\n" +
+            "X         X\n" +
+            "X       X\n" +
+            "X     @  bX\n" +
+            "X      X\n" +
+            "X        XXX\n" +
             "XXX";
 
     private Board board = new Board(BoardDefinition.fromString(BOARD_DEF));
 
     @Override
     public void start(Stage stage) throws Exception {
-/*        Block player = new Block("@");
-        board.addPiece(player, new Point2D(3, 4));
-
-        Block b1 = new Block("A");
-        board.addPiece(b1, new Point2D(3, 3));
-        Block b2 = new Block("B");
-        board.addPiece(b2, new Point2D(5, 5));
-
-        Target t1 = new Target("a");
-        Target t2 = new Target("b");
-        board.addTargetForPiece(t1, b1, new Point2D(1, 7));
-        board.addTargetForPiece(t2, b2, new Point2D(2, 2));*/
-
-        Optional<Block> optionalPlayer = board.getPlayerBlock();
+        Optional<Block> optionalPlayer = board.getPlayer();
         BoardView view = new BoardView(board, (cell) -> {
             optionalPlayer.ifPresent(player -> board.movePieceTo(player, cell));
         });

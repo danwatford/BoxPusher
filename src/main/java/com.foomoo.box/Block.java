@@ -24,4 +24,20 @@ public class Block {
     public String getText() {
         return text;
     }
+
+    public String toString() {
+        return String.format("Block(%s)", text);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        } else if (obj instanceof Block) {
+            Block block = (Block) obj;
+            return text.equals(block.getText());
+        } else {
+            return false;
+        }
+    }
 }

@@ -12,4 +12,9 @@ public class Target extends Block {
     public Target(String text) {
         super(text);
     }
+
+    @Override
+    public String toString() {
+        return String.format("Target(%s)", getText());
+    }
 }
