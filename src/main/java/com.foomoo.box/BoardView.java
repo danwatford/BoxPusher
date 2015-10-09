@@ -5,9 +5,12 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.property.Property;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.StrokeType;
@@ -26,7 +29,7 @@ public class BoardView extends Scene {
     private final Group group;
     private final BoardCellClickedHandler cellClickedHandler;
 
-    private final Map<Block, Label> piecesLabelMap = new HashMap<>();
+    private final Map<Block, Pane> piecesPaneMap = new HashMap<>();
 
     private BoardView(Board board, BoardCellClickedHandler handler, Group group) {
         super(group, board.getCellColumns() * CELL_WIDTH, board.getCellRows() * CELL_HEIGHT, Color.WHITE);
@@ -37,21 +40,24 @@ public class BoardView extends Scene {
         board.targets().forEach(target -> {
             Cell cell = board.getCellForTarget(target);
             Label targetLabel = new Label(target.getText());
-            targetLabel.setFont(new Font(CELL_HEIGHT * 3 / 4));
-            targetLabel.setTranslateX(cell.getColumn() * CELL_WIDTH);
-            targetLabel.setTranslateY(cell.getRow() * CELL_HEIGHT);
+            targetLabel.setFont(new Font(CELL_HEIGHT * 1 / 2));
 
-            targetLabel.setStyle("-fx-border-color: lightskyblue; -fx-background-color: lightskyblue");
+            StackPane stackPane = new StackPane(targetLabel);
+            stackPane.setPrefWidth(CELL_WIDTH);
+            stackPane.setPrefHeight(CELL_HEIGHT);
+            stackPane.setTranslateX(cell.getColumn() * CELL_WIDTH);
+            stackPane.setTranslateY(cell.getRow() * CELL_HEIGHT);
+            stackPane.setStyle("-fx-border-color: lightskyblue; -fx-background-color: lightskyblue");
 
-            group.getChildren().add(targetLabel);
+            group.getChildren().add(stackPane);
 
             Property<Boolean> property = board.getPropertyForTarget(target);
             property.addListener((observable, oldValue, newValue) -> {
 
                 if (newValue.booleanValue()) {
-                    targetLabel.setStyle("-fx-border-color: greenyellow; -fx-background-color: greenyellow");
+                    stackPane.setStyle("-fx-border-color: greenyellow; -fx-background-color: greenyellow");
                 } else {
-                    targetLabel.setStyle("-fx-border-color: lightskyblue; -fx-background-color: lightskyblue");
+                    stackPane.setStyle("-fx-border-color: lightskyblue; -fx-background-color: lightskyblue");
                 }
             });
         });
@@ -74,23 +80,30 @@ public class BoardView extends Scene {
                 Block block = optionalPiece.get();
                 Label label = new Label(block.getText());
                 label.setFont(new Font(CELL_HEIGHT / 2));
-                label.setTranslateX(cell.getColumn() * CELL_WIDTH);
-                label.setTranslateY(cell.getRow() * CELL_HEIGHT);
 
-                group.getChildren().add(label);
+                StackPane stackPane = new StackPane(label);
+                stackPane.setPrefWidth(CELL_WIDTH);
+                stackPane.setPrefHeight(CELL_HEIGHT);
 
-                piecesLabelMap.put(block, label);
+                stackPane.setTranslateX(cell.getColumn() * CELL_WIDTH);
+                stackPane.setTranslateY(cell.getRow() * CELL_HEIGHT);
+
+                stackPane.setAlignment(label, Pos.CENTER);
+
+                group.getChildren().add(stackPane);
+
+                piecesPaneMap.put(block, stackPane);
             }
         });
 
         board.setPieceMovedHandler((piece, point) -> {
-            Label label = piecesLabelMap.get(piece);
-            if (label == null) {
+            Pane pane = piecesPaneMap.get(piece);
+            if (pane == null) {
                 throw new RuntimeException("Label not found for Block");
             } else {
                 Timeline moving = new Timeline(Animation.INDEFINITE,
-                        new KeyFrame(Duration.seconds(0.5), new KeyValue(label.translateXProperty(), point.getColumn() * CELL_WIDTH)),
-                        new KeyFrame(Duration.seconds(0.5), new KeyValue(label.translateYProperty(), point.getRow() * CELL_HEIGHT))
+                        new KeyFrame(Duration.seconds(0.5), new KeyValue(pane.translateXProperty(), point.getColumn() * CELL_WIDTH)),
+                        new KeyFrame(Duration.seconds(0.5), new KeyValue(pane.translateYProperty(), point.getRow() * CELL_HEIGHT))
                 );
                 moving.play();
             }
