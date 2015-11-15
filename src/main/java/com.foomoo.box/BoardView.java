@@ -21,26 +21,32 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Provides a view of the Board, animating movement of blocks in response to notification of piece movement,
+ * indicating when a block has reached its target, and calling a BoardCellClickedHandler in response to mouse clicks
+ * on a cell.
+ */
 public class BoardView extends Scene {
     private static final int CELL_WIDTH = 100;
     private static final int CELL_HEIGHT = 100;
 
-    private final Board board;
-    private final Group group;
-    private final BoardCellClickedHandler cellClickedHandler;
-
+    // Map of each block to its associated Pane. Panes are moved around the view to represent the movement of
+    // the blocks.
     private final Map<Block, Pane> piecesPaneMap = new HashMap<>();
 
-    private BoardView(Board board, BoardCellClickedHandler handler, Group group) {
+    public BoardView(Board board, BoardCellClickedHandler handler) {
+        this(board, handler, new Group());
+    }
+
+    private BoardView(final Board board, final BoardCellClickedHandler handler, final Group group) {
         super(group, board.getCellColumns() * CELL_WIDTH, board.getCellRows() * CELL_HEIGHT, Color.WHITE);
-        this.board = board;
-        this.cellClickedHandler = handler;
-        this.group = group;
+
+
 
         board.targets().forEach(target -> {
             Cell cell = board.getCellForTarget(target);
             Label targetLabel = new Label(target.getText());
-            targetLabel.setFont(new Font(CELL_HEIGHT * 1 / 2));
+            targetLabel.setFont(new Font(CELL_HEIGHT / 2));
 
             StackPane stackPane = new StackPane(targetLabel);
             stackPane.setPrefWidth(CELL_WIDTH);
@@ -54,7 +60,7 @@ public class BoardView extends Scene {
             Property<Boolean> property = board.getPropertyForTarget(target);
             property.addListener((observable, oldValue, newValue) -> {
 
-                if (newValue.booleanValue()) {
+                if (newValue) {
                     stackPane.setStyle("-fx-border-color: greenyellow; -fx-background-color: greenyellow");
                 } else {
                     stackPane.setStyle("-fx-border-color: lightskyblue; -fx-background-color: lightskyblue");
@@ -88,7 +94,7 @@ public class BoardView extends Scene {
                 stackPane.setTranslateX(cell.getColumn() * CELL_WIDTH);
                 stackPane.setTranslateY(cell.getRow() * CELL_HEIGHT);
 
-                stackPane.setAlignment(label, Pos.CENTER);
+                StackPane.setAlignment(label, Pos.CENTER);
 
                 group.getChildren().add(stackPane);
 
@@ -110,16 +116,13 @@ public class BoardView extends Scene {
         });
 
         board.getCompleteProperty().addListener(((observable1, oldValue1, newValue1) -> {
-            if (newValue1.booleanValue()) {
+            if (newValue1) {
                 Label l = new Label("Finished");
                 group.getChildren().add(l);
             }
         }));
     }
 
-    public BoardView(Board board, BoardCellClickedHandler handler) {
-        this(board, handler, new Group());
-    }
 
 
     @FunctionalInterface
