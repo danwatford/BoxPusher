@@ -16,4 +16,8 @@ public class Player extends Block {
     public String toString() {
         return String.format("Player(%s)", getText());
     }
+
+    public int getPushStrength() {
+        return 1;
+    }
 }

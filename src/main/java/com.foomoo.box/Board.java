@@ -1,5 +1,6 @@
 package com.foomoo.box;
 
+import com.foomoo.box.model.Vector;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.Property;
@@ -215,8 +216,8 @@ public class Board {
     }
 
     /**
-     * Get a stream of possible cell positions.
-     * Note that this is a superset of the cells that are defined as on the board and playable.
+     * Get a stream of possible cell positions. Note that this is a superset of the cells that are defined as on the
+     * board and playable.
      *
      * @return Stream of cell positions.
      */
@@ -240,10 +241,9 @@ public class Board {
     }
 
     /**
-     * Move the given Block to the given cell location.
-     * The move will only be performed if it is valid, i.e. the space is on the board, is within one space
-     * horizontally or vertically, and if the space is already occupied that the occupying block can be pushed
-     * out of the way.
+     * Move the given Block to the given cell location. The move will only be performed if it is valid, i.e. the space
+     * is on the board, is within one space horizontally or vertically, and if the space is already occupied that the
+     * occupying block can be pushed out of the way.
      *
      * @param block      The Block to move.
      * @param targetCell The location to move the block to.
@@ -287,12 +287,12 @@ public class Board {
      *
      * @param startCell The start cell of the move.
      * @param endCell   The end cell of the move.
-     * @return True if the move is permitted, false otherwise. Note this does not take into account whether the end location
-     * is occupied and whether any occurpying block can be pushed out of the way.
+     * @return True if the move is permitted, false otherwise. Note this does not take into account whether the end
+     * location is occupied and whether any occurpying block can be pushed out of the way.
      */
     private boolean moveVectorPermitted(final Cell startCell, final Cell endCell) {
-        Cell diff = endCell.subtract(startCell);
-        return (Math.abs(diff.getRow()) == 1) ^ (Math.abs(diff.getColumn()) == 1);
+        Vector diff = endCell.subtract(startCell);
+        return (Math.abs(diff.getX()) == 1) ^ (Math.abs(diff.getY()) == 1);
     }
 
     /**
@@ -302,9 +302,9 @@ public class Board {
      * <p>
      * If <code>dryRun</code> is true, don't perform the move, just report on whether it is possible.
      * <p>
-     * Other pieces will only be pushed out of the way if they can move to another cell in the same direction as the requested block.
-     * If the block to be moved/pushed is blocked by a wall, or another block if the number of pieces that can be moved has been
-     * exceeded, then the move cannot be completed.
+     * Other pieces will only be pushed out of the way if they can move to another cell in the same direction as the
+     * requested block. If the block to be moved/pushed is blocked by a wall, or another block if the number of pieces
+     * that can be moved has been exceeded, then the move cannot be completed.
      * <p>
      * If any pieces are moved the board's PieceMovedHandler will be notified.
      *
@@ -340,9 +340,9 @@ public class Board {
             throw new RuntimeException("Block missing at cell but marked as occupied: " + targetCell);
         }
 
-        Cell diff = targetCell.subtract(blocksMap.get(block));
+        Vector diff = targetCell.subtract(blocksMap.get(block));
 
-        if (movePieceTo(possiblePiece.get(), targetCell.add(diff), canPushBlockCount - 1, dryRun)) {
+        if (movePieceTo(possiblePiece.get(), targetCell.translate(diff), canPushBlockCount - 1, dryRun)) {
             if (!dryRun) {
                 setPiecePosition(block, targetCell);
             }

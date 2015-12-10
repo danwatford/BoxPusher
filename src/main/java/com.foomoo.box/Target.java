@@ -17,4 +17,5 @@ public class Target extends Block {
     public String toString() {
         return String.format("Target(%s)", getText());
     }
+    
 }

@@ -1,11 +1,13 @@
 package com.foomoo.box;
 
+import com.foomoo.box.model.Vector;
+
 /**
  * Represents a movable block for use on a Board.
  */
 public class Block {
     // The text associated with this block.
-    private String text;
+    private final String text;
 
     /**
      * Construct a block with the given associated text.
@@ -39,5 +41,17 @@ public class Block {
         } else {
             return false;
         }
+    }
+
+    public Vector translatePushVector(final Vector pushVector) {
+        return pushVector;
+    }
+
+    /**
+     * Returns the level of effort (strength) required to move this block.
+     * @return The effort to move.
+     */
+    public int getEffortToMove() {
+        return 1;
     }
 }

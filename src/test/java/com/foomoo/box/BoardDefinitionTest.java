@@ -19,7 +19,7 @@ public class BoardDefinitionTest {
             "XXB X\n" +
             "XXXXXX";
 
-    private BoardDefinition definition1 = BoardDefinition.fromString(DEF1);
+    private final BoardDefinition definition1 = BoardDefinition.fromString(DEF1);
 
     @Test
     public void definitionHasWalls() throws Exception {

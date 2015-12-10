@@ -1,5 +1,6 @@
 package com.foomoo.box;
 
+import com.foomoo.box.model.Vector;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -11,10 +12,10 @@ import java.util.Optional;
 
 public class App extends Application {
 
-    private static final Cell UP_CELL = new Cell(-1,0);
-    private static final Cell DOWN_CELL = new Cell(1,0);
-    private static final Cell LEFT_CELL = new Cell(0,-1);
-    private static final Cell RIGHT_CELL = new Cell(0, 1);
+    private static final Vector UP_CELL = new Vector(-1, 0);
+    private static final Vector DOWN_CELL = new Vector(1, 0);
+    private static final Vector LEFT_CELL = new Vector(0, -1);
+    private static final Vector RIGHT_CELL = new Vector(0, 1);
 
     private static final String BOARD_DEF = "" +
             "XXXXXXXX\n" +
@@ -28,7 +29,7 @@ public class App extends Application {
             "X        XXX\n" +
             "XXX";
 
-    private Board board = new Board(BoardDefinition.fromString(BOARD_DEF));
+    private final Board board = new Board(BoardDefinition.fromString(BOARD_DEF));
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -51,16 +52,16 @@ public class App extends Application {
             KeyCode keyCode = ke.getCode();
             switch (keyCode) {
                 case UP:
-                    board.movePieceTo(block, currentCell.add(UP_CELL));
+                    board.movePieceTo(block, currentCell.translate(UP_CELL));
                     break;
                 case LEFT:
-                    board.movePieceTo(block, currentCell.add(LEFT_CELL));
+                    board.movePieceTo(block, currentCell.translate(LEFT_CELL));
                     break;
                 case DOWN:
-                    board.movePieceTo(block, currentCell.add(DOWN_CELL));
+                    board.movePieceTo(block, currentCell.translate(DOWN_CELL));
                     break;
                 case RIGHT:
-                    board.movePieceTo(block, currentCell.add(RIGHT_CELL));
+                    board.movePieceTo(block, currentCell.translate(RIGHT_CELL));
                     break;
                 case ESCAPE:
                     Platform.exit();

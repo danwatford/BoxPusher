@@ -41,8 +41,6 @@ public class BoardView extends Scene {
     private BoardView(final Board board, final BoardCellClickedHandler handler, final Group group) {
         super(group, board.getCellColumns() * CELL_WIDTH, board.getCellRows() * CELL_HEIGHT, Color.WHITE);
 
-
-
         board.targets().forEach(target -> {
             Cell cell = board.getCellForTarget(target);
             Label targetLabel = new Label(target.getText());
@@ -123,10 +121,9 @@ public class BoardView extends Scene {
         }));
     }
 
-
-
     @FunctionalInterface
     interface BoardCellClickedHandler {
         void cellClicked(Cell clickedCell);
     }
+
 }
