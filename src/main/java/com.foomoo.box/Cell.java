@@ -43,8 +43,14 @@ public class Cell {
         return new Cell(max(cell1.row, cell2.row), max(cell1.column, cell2.column));
     }
 
-    public static Stream<Cell> range(final Cell min, final Cell max) {
-        final Vector distanceVector = max.subtract(min);
+    /**
+     * Provides a stream of Cells representing all cell positions bounded by the two corner cells.
+     * @param corner1 The first corner cell
+     * @param corner2 The second corner cell
+     * @return The stream of Cells.
+     */
+    public static Stream<Cell> range(final Cell corner1, final Cell corner2) {
+        final Vector distanceVector = corner2.subtract(corner1);
         final int maxX = distanceVector.getX();
         final int maxY = distanceVector.getY();
 
@@ -53,7 +59,6 @@ public class Cell {
         final Iterator<Cell> iterator = new Iterator<Cell>() {
 
             int i = 0;
-
             int currentY = 0;
             int currentX = 0;
 
@@ -66,7 +71,7 @@ public class Cell {
             public Cell next() {
                 if (i < size) {
                     i++;
-                    final Cell retCell = min.translate(new Vector(currentX, currentY));
+                    final Cell retCell = corner1.translate(new Vector(currentX, currentY));
 
                     currentX++;
                     if (currentX > maxX) {
@@ -146,4 +151,5 @@ public class Cell {
                 .append(column)
                 .toHashCode();
     }
+
 }

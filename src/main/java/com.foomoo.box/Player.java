@@ -18,6 +18,6 @@ public class Player extends Block {
     }
 
     public int getPushStrength() {
-        return 1;
+        return 2;
     }
 }
