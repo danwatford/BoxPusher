@@ -3,6 +3,7 @@ package com.foomoo.box.model.immutable;
 import com.foomoo.box.Block;
 import com.foomoo.box.Cell;
 import com.foomoo.box.Player;
+import com.foomoo.box.Target;
 import com.foomoo.box.model.Vector;
 import com.foomoo.box.model.Wall;
 
@@ -13,13 +14,15 @@ import java.util.stream.IntStream;
 public final class BoardModel {
 
     private final Player player;
-    private final Map<Block, Cell> blockCellsMap;
+    private final Map<Block, Cell> blockCellMap;
+    private final Map<Target, Cell> targetCellMap;
     private final Cell minCell;
     private final Cell maxCell;
 
     private BoardModel(final BoardModelBuilder builder) {
         this.player = builder.player;
-        this.blockCellsMap = new HashMap<>(builder.blockCellsMap);
+        this.blockCellMap = new HashMap<>(builder.blockCellMap);
+        this.targetCellMap = new HashMap<>(builder.targetCellMap);
 
         this.minCell = builder.minCell;
         this.maxCell = builder.maxCell;
@@ -41,18 +44,58 @@ public final class BoardModel {
      * Gets the cell for the given block.
      *
      * @param block The block to get the cell for.
-     * @return The Cell if the block is present in the model, empty otherwise.
+     * @return Optional of the Cell if the block is present in the model, empty otherwise.
      */
     public Optional<Cell> getBlockCell(final Block block) {
-        return Optional.ofNullable(blockCellsMap.get(block));
+        return Optional.ofNullable(blockCellMap.get(block));
     }
 
+    /**
+     * Gets the block at the given cell, if any.
+     *
+     * @param cell The cell to get the block for.
+     * @return Optional of the Block at the cell. Empty if no block present.
+     */
     public Optional<Block> getBlockAtCell(final Cell cell) {
-        return blockCellsMap.entrySet().stream().filter(entry -> Objects.equals(cell, entry.getValue())).map(Entry::getKey).findAny();
+        return blockCellMap.entrySet().stream().filter(entry -> Objects.equals(cell, entry.getValue())).map(Entry::getKey).findAny();
     }
 
+    /**
+     * Gets all blocks known to the model.
+     *
+     * @return The Set of Blocks.
+     */
     public Set<Block> getBlocks() {
-        return blockCellsMap.keySet();
+        return blockCellMap.keySet();
+    }
+
+    /**
+     * Get the cell for the given target.
+     *
+     * @param target The target to get the cell for.
+     * @return Optional of the Cell if the block is present in the model, empty otherwise.
+     */
+    public Optional<Cell> getTargetCell(final Target target) {
+        return Optional.ofNullable(targetCellMap.get(target));
+    }
+
+    /**
+     * Gets the target at the given cell, if any.
+     *
+     * @param cell The cell to get the target for.
+     * @return Optional of Target at the cell. Empty if no target present.
+     */
+    public Optional<Target> getTargetAtCell(final Cell cell) {
+        return targetCellMap.entrySet().stream().filter(entry -> Objects.equals(cell, entry.getValue())).map(Entry::getKey).findAny();
+    }
+
+    /**
+     * Gets all targets known to the model.
+     *
+     * @return The Set of Targets.
+     */
+    public Set<Target> getTargets() {
+        return targetCellMap.keySet();
     }
 
     public Cell getMinCell() {
@@ -77,18 +120,18 @@ public final class BoardModel {
         builder.blockCell(block, to);
 
         // Which block is currently at the target.
-        Optional<Block> targetCellBlockOptional = getBlockAtCell(to);
+        final Optional<Block> targetCellBlockOptional = getBlockAtCell(to);
 
         if (targetCellBlockOptional.isPresent()) {
-            // Get the push vector which can be applied to all blocks as necessarily.
-            final Vector pushVector = to.subtract(from);
+            return targetCellBlockOptional.flatMap(targetCellBlock -> {
+                // Get the push vector which can be applied to all blocks as necessarily.
+                final Vector pushVector = to.subtract(from);
 
-            return targetCellBlockOptional.flatMap(nextBlock -> {
-                if (pushStrength >= nextBlock.getEffortToMove()) {
-                    final Vector translatedPushVector = nextBlock.translatePushVector(pushVector);
+                if (pushStrength >= targetCellBlock.getEffortToMove()) {
+                    final Vector translatedPushVector = targetCellBlock.translatePushVector(pushVector);
                     final Cell nextTargetCell = to.translate(translatedPushVector);
 
-                    return moveBlocksBetweenCell(builder, nextBlock, to, nextTargetCell, pushStrength - nextBlock.getEffortToMove());
+                    return moveBlocksBetweenCell(builder, targetCellBlock, to, nextTargetCell, pushStrength - targetCellBlock.getEffortToMove());
                 } else {
                     return Optional.empty();
                 }
@@ -112,20 +155,22 @@ public final class BoardModel {
      */
     private Optional<BoardModel> recursiveBlockMove(final BoardModelBuilder builder, final Block block, final Cell targetCell, final int pushStrength) {
         // Get the current cell for the block. If the block doesn't exist don't change the model.
-        return Optional.ofNullable(blockCellsMap.get(block)).flatMap(currentCell -> moveBlocksBetweenCell(builder, block, currentCell, targetCell, pushStrength));
+        return Optional.ofNullable(blockCellMap.get(block)).flatMap(currentCell -> moveBlocksBetweenCell(builder, block, currentCell, targetCell, pushStrength));
     }
 
 
     public static class BoardModelBuilder {
         private final Player player;
-        private final Map<Block, Cell> blockCellsMap = new HashMap<>();
+        private final Map<Block, Cell> blockCellMap = new HashMap<>();
+        private final Map<Target, Cell> targetCellMap = new HashMap<>();
         private Error error;
         private Cell minCell;
         private Cell maxCell;
 
         public BoardModelBuilder(final BoardModel originalModel) {
             this.player = originalModel.player;
-            this.blockCellsMap.putAll(originalModel.blockCellsMap);
+            this.blockCellMap.putAll(originalModel.blockCellMap);
+            this.targetCellMap.putAll(originalModel.targetCellMap);
         }
 
         public BoardModelBuilder(final Player player, final Cell playerCell) {
@@ -134,12 +179,17 @@ public final class BoardModel {
         }
 
         public BoardModelBuilder blockCell(final Block block, final Cell cell) {
-            blockCellsMap.put(block, cell);
+            blockCellMap.put(block, cell);
+            return this;
+        }
+
+        public BoardModelBuilder targetCell(final Target target, final Cell cell) {
+            targetCellMap.put(target, cell);
             return this;
         }
 
         public BoardModelBuilder wall(final Cell cell) {
-            blockCellsMap.put(new Wall(), cell);
+            blockCellMap.put(new Wall(), cell);
             return this;
         }
 
@@ -157,8 +207,8 @@ public final class BoardModel {
         }
 
         public BoardModel build() {
-            blockCellsMap.values().stream().reduce(Cell::minimalCell).ifPresent(cell -> minCell = cell);
-            blockCellsMap.values().stream().reduce(Cell::maximalCell).ifPresent(cell -> maxCell = cell);
+            blockCellMap.values().stream().reduce(Cell::minimalCell).ifPresent(cell -> minCell = cell);
+            blockCellMap.values().stream().reduce(Cell::maximalCell).ifPresent(cell -> maxCell = cell);
 
             return new BoardModel(this);
         }

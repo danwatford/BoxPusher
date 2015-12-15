@@ -35,6 +35,9 @@ public class BoardViewImmutableModel extends Scene {
     // the blocks.
     private final Map<Block, Pane> blockPaneMap = new HashMap<>();
 
+    // Map of each target to its associated Pane.
+    private final Map<Target, Pane> targetPaneMap = new HashMap<>();
+
     public BoardViewImmutableModel(final BoardModel boardModel) {
         this(boardModel, new Group());
     }
@@ -52,45 +55,56 @@ public class BoardViewImmutableModel extends Scene {
 
             group.getChildren().add(r);
 
+            // Any targets at this cell position?
+            board.getTargetAtCell(cell).ifPresent(target -> {
+                final StackPane stackPane = createStackPane(target.getText(), cell);
+                group.getChildren().add(stackPane);
+                targetPaneMap.put(target, stackPane);
+            });
+
             // Any pieces at this cell position?
             board.getBlockAtCell(cell).ifPresent(block -> {
-                final Label label = new Label(block.getText());
-                label.setFont(new Font(CELL_HEIGHT / 2));
-
-                final StackPane stackPane = new StackPane(label);
-                stackPane.setPrefWidth(CELL_WIDTH);
-                stackPane.setPrefHeight(CELL_HEIGHT);
-
-                stackPane.setTranslateX(cell.getColumn() * CELL_WIDTH);
-                stackPane.setTranslateY(cell.getRow() * CELL_HEIGHT);
-
-                StackPane.setAlignment(label, Pos.CENTER);
-
+                final StackPane stackPane = createStackPane(block.getText(), cell);
                 group.getChildren().add(stackPane);
-
                 blockPaneMap.put(block, stackPane);
             });
         });
+    }
+
+    private StackPane createStackPane(final String text, final Cell cell) {
+        final Label label = new Label(text);
+        label.setFont(new Font(CELL_HEIGHT / 2));
+
+        final StackPane stackPane = new StackPane(label);
+        stackPane.setPrefWidth(CELL_WIDTH);
+        stackPane.setPrefHeight(CELL_HEIGHT);
+
+        stackPane.setTranslateX(cell.getColumn() * CELL_WIDTH);
+        stackPane.setTranslateY(cell.getRow() * CELL_HEIGHT);
+
+        StackPane.setAlignment(label, Pos.CENTER);
+
+        return stackPane;
     }
 
     public void setNextBoardModel(final BoardModel nextBoardModel) {
 
         final BoardModelDiff diff = new BoardModelDiff(boardModel, nextBoardModel);
 
-        diff.getMovedBlocks().forEach(block -> {
-            nextBoardModel.getBlockCell(block).ifPresent(cell -> {
-                final Pane pane = blockPaneMap.get(block);
-                if (pane == null) {
-                    throw new RuntimeException("Pane not found for Block: " + block);
-                } else {
-                    final Timeline moving = new Timeline(Animation.INDEFINITE,
-                            new KeyFrame(Duration.seconds(0.5), new KeyValue(pane.translateXProperty(), cell.getColumn() * CELL_WIDTH)),
-                            new KeyFrame(Duration.seconds(0.5), new KeyValue(pane.translateYProperty(), cell.getRow() * CELL_HEIGHT))
-                    );
-                    moving.play();
-                }
-            });
-        });
+        diff.getMovedBlocks().forEach(block -> nextBoardModel.getBlockCell(block).ifPresent(cell -> {
+            final Pane pane = blockPaneMap.get(block);
+            if (pane == null) {
+                throw new RuntimeException("Pane not found for Block: " + block);
+            } else {
+                final Timeline moving = new Timeline(Animation.INDEFINITE,
+                        new KeyFrame(Duration.seconds(0.5), new KeyValue(pane.translateXProperty(), cell.getColumn() * CELL_WIDTH)),
+                        new KeyFrame(Duration.seconds(0.5), new KeyValue(pane.translateYProperty(), cell.getRow() * CELL_HEIGHT))
+                );
+                moving.play();
+            }
+        }));
+
+        boardModel = nextBoardModel;
     }
 
 }

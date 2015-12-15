@@ -50,7 +50,10 @@ public class Cell {
      * @return The stream of Cells.
      */
     public static Stream<Cell> range(final Cell corner1, final Cell corner2) {
-        final Vector distanceVector = corner2.subtract(corner1);
+        final Cell minCell = Cell.minimalCell(corner1, corner2);
+        final Cell maxCell = Cell.maximalCell(corner1, corner2);
+
+        final Vector distanceVector = maxCell.subtract(minCell);
         final int maxX = distanceVector.getX();
         final int maxY = distanceVector.getY();
 
@@ -71,7 +74,7 @@ public class Cell {
             public Cell next() {
                 if (i < size) {
                     i++;
-                    final Cell retCell = corner1.translate(new Vector(currentX, currentY));
+                    final Cell retCell = minCell.translate(new Vector(currentX, currentY));
 
                     currentX++;
                     if (currentX > maxX) {
@@ -136,7 +139,7 @@ public class Cell {
             return false;
         }
 
-        Cell cell = (Cell) obj;
+        final Cell cell = (Cell) obj;
 
         return new EqualsBuilder()
                 .append(row, cell.row)

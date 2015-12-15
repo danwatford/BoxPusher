@@ -34,6 +34,8 @@ public class AppWithImmutableModel extends Application {
                 .blockCell(new Block("B1"), new Cell(4, 4))
                 .blockCell(new Block("B2"), new Cell(6, 6))
                 .blockCell(new Block("B3"), new Cell(8, 2))
+                .targetCell(new Target("T1"), new Cell(3, 3))
+                .targetCell(new Target("T2"), new Cell(5, 5))
                 .build();
 
         view = new BoardViewImmutableModel(model);

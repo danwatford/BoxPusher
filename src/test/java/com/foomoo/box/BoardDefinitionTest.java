@@ -1,11 +1,11 @@
 package com.foomoo.box;
 
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -39,22 +39,22 @@ public class BoardDefinitionTest {
     public void definitionContainsAllBlocks() {
         Map<Block, Cell> blockCellMap = definition1.getBlockCells();
 
-        assertThat(blockCellMap, Matchers.hasEntry(new Block("A"), new Cell(2, 1)));
-        assertThat(blockCellMap, Matchers.hasEntry(new Block("B"), new Cell(3, 2)));
+        assertThat(blockCellMap, hasEntry(new Block("A"), new Cell(2, 1)));
+        assertThat(blockCellMap, hasEntry(new Block("B"), new Cell(3, 2)));
     }
 
     @Test
     public void definitionContainsAllTargets() {
         Map<Target, Cell> targetCellMap = definition1.getTargetCells();
 
-        assertThat(targetCellMap, Matchers.hasEntry(new Target("a"), new Cell(2, 3)));
-        assertThat(targetCellMap, Matchers.hasEntry(new Target("c"), new Cell(1, 4)));
+        assertThat(targetCellMap, hasEntry(new Target("a"), new Cell(2, 3)));
+        assertThat(targetCellMap, hasEntry(new Target("c"), new Cell(1, 4)));
     }
 
     @Test
     public void definitionContainsLinkedBlocksAndTargets() {
         Map<Block, Target> blockTargetMap = definition1.getBlockTargetMap();
 
-        assertThat(blockTargetMap, Matchers.hasEntry(new Block("A"), new Target("a")));
+        assertThat(blockTargetMap, hasEntry(new Block("A"), new Target("a")));
     }
 }
