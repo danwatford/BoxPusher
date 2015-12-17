@@ -1,5 +1,8 @@
 package com.foomoo.box;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 /**
  * Represents a fixed space on a board intended to be the target location for a movable block.
  */
@@ -41,4 +44,23 @@ public class Target {
         return String.format("Target(%s)", text);
     }
 
+    @Override
+    public boolean equals(final Object obj) {
+        if (! (obj instanceof Target)) {
+            return false;
+        }
+
+        final Target target = (Target) obj;
+
+        return new EqualsBuilder()
+                .append(text, target.text)
+                .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .append(text)
+                .toHashCode();
+    }
 }

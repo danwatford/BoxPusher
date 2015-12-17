@@ -3,7 +3,6 @@ package com.foomoo.box.model.immutable;
 import com.foomoo.box.Block;
 import com.foomoo.box.Cell;
 import com.foomoo.box.Player;
-import com.foomoo.box.PlayerJava;
 import com.foomoo.box.model.immutable.BoardModel.BoardModelBuilder;
 import mockit.Expectations;
 import mockit.Mocked;
@@ -48,7 +47,7 @@ public class BoardModelTest {
     }
 
     @Test
-    public void pieceMovesIfCanPushSingleBlock(@Mocked final PlayerJava player) {
+    public void pieceMovesIfCanPushSingleBlock(@Mocked final Player player) {
 
         new Expectations() {
             {
@@ -70,7 +69,7 @@ public class BoardModelTest {
     }
 
     @Test
-    public void pieceMovesIfCanPushMultipleBlocks(@Mocked final PlayerJava player) {
+    public void pieceMovesIfCanPushMultipleBlocks(@Mocked final Player player) {
         new Expectations() {
             {
                 player.getPushStrength();
@@ -94,7 +93,7 @@ public class BoardModelTest {
     }
 
     @Test
-    public void pieceDoesNotMoveIfCannotPushBlocks(@Mocked final PlayerJava player) {
+    public void pieceDoesNotMoveIfCannotPushBlocks(@Mocked final Player player) {
         new Expectations() {
             {
                 player.getPushStrength();
@@ -108,7 +107,7 @@ public class BoardModelTest {
     }
 
     @Test
-    public void pieceDoesNotMoveIfCannotPushMultipleBlocks(@Mocked final PlayerJava player) {
+    public void pieceDoesNotMoveIfCannotPushMultipleBlocks(@Mocked final Player player) {
         new Expectations() {{
             player.getPushStrength();
             result = 1;
@@ -120,7 +119,7 @@ public class BoardModelTest {
     }
 
     @Test
-    public void pieceCannotMoveBlockIfNotEnoughStrength(@Mocked final PlayerJava player) {
+    public void pieceCannotMoveBlockIfNotEnoughStrength(@Mocked final Player player) {
         new Expectations() {{
             player.getPushStrength();
             result = 1;
