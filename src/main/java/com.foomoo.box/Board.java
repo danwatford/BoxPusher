@@ -27,7 +27,7 @@ import java.util.stream.Stream;
 public class Board {
 
     final BoardDefinition definition;
-    Player player;
+    PlayerJava player;
     final Map<Block, Cell> blocksMap = new HashMap<>();
     final Map<Target, TargetData> targetsDataMap = new HashMap<>();
 
@@ -44,7 +44,7 @@ public class Board {
         definition = boardDefinition;
 
         definition.getPlayerCell().ifPresent(cell -> {
-            player = new Player("@");
+            player = new PlayerJava("@");
             blocksMap.put(player, cell);
         });
 

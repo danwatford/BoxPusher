@@ -155,4 +155,8 @@ public class Cell {
                 .toHashCode();
     }
 
+
+    // 'Missing' cell used to help with porting to scala.
+    // TODO:  Delete once porting complete.
+    public static Cell EMPTY = new Cell(-9999, -9999);
 }

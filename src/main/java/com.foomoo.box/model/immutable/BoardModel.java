@@ -1,9 +1,6 @@
 package com.foomoo.box.model.immutable;
 
-import com.foomoo.box.Block;
-import com.foomoo.box.Cell;
-import com.foomoo.box.Player;
-import com.foomoo.box.Target;
+import com.foomoo.box.*;
 import com.foomoo.box.model.Vector;
 import com.foomoo.box.model.Wall;
 
