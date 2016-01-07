@@ -15,7 +15,6 @@ object CellProperties extends Properties("Cell Generation") {
     column <- Gen.posNum[Int]
   } yield new Cell(row, column)
 
-
   property("generates a rectangular number of cells") =
     forAll(cells, cells) { (c1, c2) =>
 
@@ -26,4 +25,5 @@ object CellProperties extends Properties("Cell Generation") {
 
       Cell.range(c1, c2).count() == expectedCellCount
     }
+
 }

@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
+import scala.Option;
 
 import java.util.Optional;
 
@@ -53,7 +54,7 @@ public class AppWithImmutableModel extends Application {
             final Optional<Cell> optionalPlayerCell = model.getBlockCell(player);
             optionalPlayerCell.ifPresent(currentCell -> {
                 KeyCode keyCode = ke.getCode();
-                Optional<BoardModel> nextModelOptional = Optional.empty();
+                Option<BoardModel> nextModelOptional = scala.Option.apply(null);
                 switch (keyCode) {
                     case UP:
                         nextModelOptional = model.movePlayerPieceTo(currentCell.translate(UP_CELL));
@@ -71,10 +72,11 @@ public class AppWithImmutableModel extends Application {
                         Platform.exit();
                 }
 
-                nextModelOptional.ifPresent(nextModel -> {
+                if (nextModelOptional.isDefined()) {
+                    final BoardModel nextModel = nextModelOptional.get();
                     model = nextModel;
-                    view.setNextBoardModel(model);
-                });
+                    view.setNextBoardModel(nextModel);
+                }
             });
         });
     }

@@ -9,6 +9,7 @@ import mockit.Mocked;
 import mockit.integration.junit4.JMockit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import scala.Option;
 
 import java.util.Optional;
 
@@ -37,11 +38,11 @@ public class BoardModelTest {
 
     @Test
     public void pieceMovesIfTargetSpaceFree() {
-        Cell targetCell = new Cell(2, 2);
-        Optional<BoardModel> modelOptional = SINGLE_PLAYER_NO_BLOCKS.movePlayerPieceTo(targetCell);
-        assertThat(modelOptional.isPresent(), equalTo(true));
-        BoardModel model = modelOptional.get();
-        Optional<Cell> cellOptional = model.getBlockCell(TEST_PLAYER);
+        final Cell targetCell = new Cell(2, 2);
+        final Option<BoardModel> modelOption = SINGLE_PLAYER_NO_BLOCKS.movePlayerPieceTo(targetCell);
+        assertThat(modelOption.isDefined(), equalTo(true));
+        final BoardModel model = modelOption.get();
+        final Optional<Cell> cellOptional = model.getBlockCell(TEST_PLAYER);
         assertThat(cellOptional.isPresent(), equalTo(true));
         assertThat(cellOptional.get(), equalTo(targetCell));
     }
@@ -57,10 +58,10 @@ public class BoardModelTest {
         };
 
         Cell targetCell = new Cell(1, 2);
-        Optional<BoardModel> modelOptional = SINGLE_PLAYER_ADJACENT_SINGLE_BLOCK.movePlayerPieceTo(targetCell);
-        assertThat(modelOptional.isPresent(), equalTo(true));
+        Option<BoardModel> modelOption = SINGLE_PLAYER_ADJACENT_SINGLE_BLOCK.movePlayerPieceTo(targetCell);
+        assertThat(modelOption.isDefined(), equalTo(true));
 
-        BoardModel model = modelOptional.get();
+        BoardModel model = modelOption.get();
         Optional<Cell> cellOptional = model.getBlockCell(TEST_PLAYER);
         assertThat(cellOptional.get(), equalTo(targetCell));
 
@@ -78,10 +79,10 @@ public class BoardModelTest {
         };
 
         Cell targetCell = new Cell(1, 2);
-        Optional<BoardModel> modelOptional = SINGLE_PLAYER_ADJACENT_TWO_BLOCK.movePlayerPieceTo(targetCell);
-        assertThat(modelOptional.isPresent(), equalTo(true));
+        Option<BoardModel> modelOption = SINGLE_PLAYER_ADJACENT_TWO_BLOCK.movePlayerPieceTo(targetCell);
+        assertThat(modelOption.isDefined(), equalTo(true));
 
-        BoardModel model = modelOptional.get();
+        BoardModel model = modelOption.get();
         Optional<Cell> playerCellOptional = model.getBlockCell(TEST_PLAYER);
         assertThat(playerCellOptional.get(), equalTo(targetCell));
 
@@ -102,8 +103,8 @@ public class BoardModelTest {
         };
 
         Cell targetCell = new Cell(1, 2);
-        Optional<BoardModel> modelOptional = SINGLE_PLAYER_ADJACENT_SINGLE_BLOCK.movePlayerPieceTo(targetCell);
-        assertThat(modelOptional.isPresent(), equalTo(false));
+        Option<BoardModel> modelOption = SINGLE_PLAYER_ADJACENT_SINGLE_BLOCK.movePlayerPieceTo(targetCell);
+        assertThat(modelOption.isDefined(), equalTo(false));
     }
 
     @Test
@@ -114,8 +115,8 @@ public class BoardModelTest {
         }};
 
         Cell targetCell = new Cell(1, 2);
-        Optional<BoardModel> modelOptional = SINGLE_PLAYER_ADJACENT_TWO_BLOCK.movePlayerPieceTo(targetCell);
-        assertThat(modelOptional.isPresent(), equalTo(false));
+        Option<BoardModel> modelOption = SINGLE_PLAYER_ADJACENT_TWO_BLOCK.movePlayerPieceTo(targetCell);
+        assertThat(modelOption.isDefined(), equalTo(false));
     }
 
     @Test
@@ -131,45 +132,8 @@ public class BoardModelTest {
         }};
 
         Cell targetCell = new Cell(1, 2);
-        Optional<BoardModel> modelOptional = SINGLE_PLAYER_ADJACENT_SINGLE_BLOCK.movePlayerPieceTo(targetCell);
-        assertThat(modelOptional.isPresent(), equalTo(false));
-    }
-
-
-    @Test(expected = BoardModelException.class)
-    public void buildingInvalidWallGivesError() throws BoardModelException {
-        Cell from = new Cell(0, 0);
-        Cell to = new Cell(1, 1);
-
-        new BoardModelBuilder(TEST_PLAYER, new Cell(1, 1)).wall(from, to).build();
-    }
-
-    @Test
-    public void getsMinimumCell() {
-        final BoardModel walledModel = getWalledModel();
-
-        assertThat(walledModel.getMinCell(), equalTo(new Cell(0, 0)));
-    }
-
-    @Test
-    public void getsMaximumCell() {
-        final BoardModel walledModel = getWalledModel();
-
-        assertThat(walledModel.getMaxCell(), equalTo(new Cell(10, 10)));
-    }
-
-
-    private BoardModel getWalledModel() {
-        try {
-            return new BoardModelBuilder(TEST_PLAYER, new Cell(2, 2))
-                    .wall(new Cell(0, 0), new Cell(0, 10))
-                    .wall(new Cell(10, 0), new Cell(10, 10))
-                    .wall(new Cell(0, 0), new Cell(10, 0))
-                    .wall(new Cell(0, 10), new Cell(10, 10))
-                    .build();
-        } catch (BoardModelException e) {
-            throw new AssertionError("Error constructing test model with walls");
-        }
+        Option<BoardModel> modelOption = SINGLE_PLAYER_ADJACENT_SINGLE_BLOCK.movePlayerPieceTo(targetCell);
+        assertThat(modelOption.isDefined(), equalTo(false));
     }
 
 }

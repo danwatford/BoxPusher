@@ -15,9 +15,7 @@ class Vector(@BeanProperty val x: Int, @BeanProperty val y: Int) {
     * @return the difference vector.
     * @throws NullPointerException if the specified { @code Vector} is null
     */
-  def subtract(that: Vector): Vector = {
-    new Vector(x - that.x, y - that.y)
-  }
+  def subtract(that: Vector): Vector = new Vector(x - that.x, y - that.y)
 
   /**
     * Returns the sum of this and another vector.
@@ -26,21 +24,18 @@ class Vector(@BeanProperty val x: Int, @BeanProperty val y: Int) {
     * @return the sum vector
     * @throws NullPointerException if the specified { @code Vector} is null
     */
-  def add(that: Vector): Vector = {
-    new Vector(x + that.x, y + that.y)
-  }
+  def add(that: Vector): Vector = new Vector(x + that.x, y + that.y)
 
-  override def toString: String = s"Vector($x,$y)"
+  override lazy val toString: String = s"Vector($x,$y)"
 
   override def equals(obj: Any): Boolean = {
-    if (!obj.isInstanceOf[Vector]) {
+    if (obj == null || !obj.isInstanceOf[Vector]) {
       return false
     }
+
     val vector: Vector = obj.asInstanceOf[Vector]
     new EqualsBuilder().append(x, vector.x).append(y, vector.y).isEquals
   }
 
-  override def hashCode: Int = {
-    new HashCodeBuilder().append(x).append(y).toHashCode
-  }
+  override lazy val hashCode: Int = new HashCodeBuilder().append(x).append(y).toHashCode
 }

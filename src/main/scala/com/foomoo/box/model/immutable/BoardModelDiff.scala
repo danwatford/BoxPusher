@@ -59,7 +59,5 @@ class BoardModelDiff(first: BoardModel, second: BoardModel) {
     )
   }
 
-
-
   private def toOption[T](javaOp: Optional[T]): Option[T] = if (javaOp.isPresent) Some(javaOp.get()) else None
 }
