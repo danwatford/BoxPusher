@@ -5,14 +5,16 @@ import java.util.Optional
 import com.foomoo.box.model.Wall
 import com.foomoo.box.{Player, Cell}
 import com.foomoo.box.model.immutable.BoardModel.BoardModelBuilder
-import org.scalacheck.Prop.{forAll, propBoolean}
-import org.scalacheck.{Gen, Properties}
+import org.scalacheck.Prop.{classify, forAll, propBoolean}
+import org.scalacheck.{Prop, Gen, Properties}
 
 class BoardModelProperties extends Properties("BoardModel") {
 
+  val boardDimension: Gen[Int] = Gen.choose(0, 5)
+
   val cells: Gen[Cell] = for {
-    row <- Gen.posNum[Int]
-    column <- Gen.posNum[Int]
+    row <- boardDimension
+    column <- boardDimension
   } yield new Cell(row, column)
 
   def isInRange(testVal: Int, x: Int, y: Int): Boolean = {
@@ -35,10 +37,11 @@ class BoardModelProperties extends Properties("BoardModel") {
     builder.wall(wallCorner1, wallCorner2).build
   }
 
-  property("generates wall on rectangle perimeter") =
+  property("only generates wall blocks on rectangle perimeter") =
     forAll(cells, cells, cells)((c1, c2, testCell) =>
-      isPerimeterCell(testCell, c1, c2) ==>
-        toOption(generateWalledBoardModel(c1, c2).getBlockAtCell(testCell)).exists(_.isInstanceOf[Wall])
+      classify(isPerimeterCell(testCell, c1, c2), "perimeter") {
+        isPerimeterCell(testCell, c1, c2) == toOption(generateWalledBoardModel(c1, c2).getBlockAtCell(testCell)).exists(_.isInstanceOf[Wall])
+      }
     )
 
   private def toOption[T](javaOp: Optional[T]): Option[T] = if (javaOp.isPresent) Some(javaOp.get()) else None
