@@ -40,9 +40,8 @@ class BoardModelProperties extends Properties("BoardModel") {
   property("only generates wall blocks on rectangle perimeter") =
     forAll(cells, cells, cells)((c1, c2, testCell) =>
       classify(isPerimeterCell(testCell, c1, c2), "perimeter") {
-        isPerimeterCell(testCell, c1, c2) == toOption(generateWalledBoardModel(c1, c2).getBlockAtCell(testCell)).exists(_.isInstanceOf[Wall])
+        isPerimeterCell(testCell, c1, c2) == generateWalledBoardModel(c1, c2).getBlockAtCell(testCell).exists(_.isInstanceOf[Wall])
       }
     )
 
-  private def toOption[T](javaOp: Optional[T]): Option[T] = if (javaOp.isPresent) Some(javaOp.get()) else None
 }

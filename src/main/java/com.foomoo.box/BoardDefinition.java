@@ -99,4 +99,5 @@ public class BoardDefinition {
 
         return new BoardDefinition(colCount, rowCount, wallCells, playerCell, blockMap, targetMap, blockTargetMap);
     }
+
 }

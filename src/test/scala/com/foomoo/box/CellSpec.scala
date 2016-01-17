@@ -1,9 +1,5 @@
 package com.foomoo.box
 
-import java.util.stream.Collectors
-
-import scala.collection.JavaConversions._
-
 /**
   * Tests for the Cell class
   */
@@ -12,17 +8,15 @@ class CellSpec extends UnitSpec {
   private val MAX_CELL: Cell = new Cell(3, 3)
 
   "A Cell Range" should "include minimum cell" in {
-    val cellStream: java.util.stream.Stream[Cell] = Cell.range(MIN_CELL, MAX_CELL)
-    val cellList: java.util.List[Cell] = cellStream.collect(Collectors.toList())
+    val cellSeq = Cell.range(MIN_CELL, MAX_CELL)
 
-    cellList should contain (MIN_CELL)
+    cellSeq should contain (MIN_CELL)
   }
 
   it should "include maximum cell" in {
-    val cellStream: java.util.stream.Stream[Cell] = Cell.range(MIN_CELL, MAX_CELL)
-    val cellList: java.util.List[Cell] = cellStream.collect(Collectors.toList())
+    val cellSeq = Cell.range(MIN_CELL, MAX_CELL)
 
-    cellList should contain (MAX_CELL)
+    cellSeq should contain (MAX_CELL)
   }
 
 }

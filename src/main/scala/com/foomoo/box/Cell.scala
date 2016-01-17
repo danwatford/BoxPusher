@@ -31,43 +31,16 @@ object Cell {
   def maximalCell(cell1: Cell, cell2: Cell): Cell = new Cell(max(cell1.row, cell2.row), max(cell1.column, cell2.column))
 
   /**
-    * Provides a stream of Cells representing all cell positions bounded by the two corner cells.
+    * Provides a sequence of Cells representing all cell positions bounded by the two corner cells.
     * @param corner1 The first corner cell
     * @param corner2 The second corner cell
     * @return The stream of Cells.
     */
-  def range(corner1: Cell, corner2: Cell): Stream[Cell] = {
+  def range(corner1: Cell, corner2: Cell): Seq[Cell] = {
     val minCell: Cell = Cell.minimalCell(corner1, corner2)
     val maxCell: Cell = Cell.maximalCell(corner1, corner2)
-    val distanceVector: Vector = maxCell.subtract(minCell)
-    val maxX: Int = distanceVector.getX
-    val maxY: Int = distanceVector.getY
-    val size: Int = (maxX + 1) * (maxY + 1)
-    val iterator: java.util.Iterator[Cell] = new java.util.Iterator[Cell]() {
-      private[box] var i: Int = 0
-      private[box] var currentY: Int = 0
-      private[box] var currentX: Int = 0
 
-      def hasNext: Boolean = i < size
-
-      def next: Cell = {
-        if (i < size) {
-          i += 1
-          val retCell: Cell = minCell.translate(new Vector(currentX, currentY))
-          currentX += 1
-          if (currentX > maxX) {
-            currentX = 0
-            currentY += 1
-          }
-          retCell
-        }
-        else {
-          throw new NoSuchElementException
-        }
-      }
-    }
-
-    StreamSupport.stream(Spliterators.spliterator(iterator, size, ORDERED | IMMUTABLE | DISTINCT | NONNULL | SIZED), false)
+    for (row <- minCell.row to maxCell.row; column <- minCell.column to maxCell.column) yield new Cell(row, column)
   }
 
   var EMPTY: Cell = new Cell(-9999, -9999)

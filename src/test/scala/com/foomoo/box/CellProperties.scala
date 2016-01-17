@@ -23,7 +23,7 @@ object CellProperties extends Properties("Cell Generation") {
 
       val expectedCellCount = rectHeight * rectWidth
 
-      Cell.range(c1, c2).count() == expectedCellCount
+      Cell.range(c1, c2).size == expectedCellCount
     }
 
 }

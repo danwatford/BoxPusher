@@ -1,6 +1,6 @@
 package com.foomoo.box.model.immutable
 
-import java.util.{Optional, Set}
+import java.util.Optional
 
 import com.foomoo.box.{Block, Target}
 
@@ -14,10 +14,10 @@ class BoardModelDiff(first: BoardModel, second: BoardModel) {
   /**
     * Get the blocks that have changed cell when moving from the first to the second BoardModel.
     *
-    * @return The List of Blocks.
+    * @return The Set of Blocks.
     */
-  def getMovedBlocks: java.util.List[Block] = {
-    getCommonBlocks.filter(block => first.getBlockCell(block).get() != second.getBlockCell(block).get()).toList
+  def getMovedBlocks: Set[Block] = {
+    getCommonBlocks.filter(block => first.getBlockCell(block) != second.getBlockCell(block))
   }
 
   /**
@@ -49,10 +49,10 @@ class BoardModelDiff(first: BoardModel, second: BoardModel) {
     */
   private def getCompletedTargets(boardModel: BoardModel): Set[Target] = {
     boardModel.getTargets.filter(target => {
-      toOption(boardModel.getTargetCell(target)) match {
+      boardModel.getTargetCell(target) match {
         case None => false
         case Some(targetCell) => {
-          toOption(boardModel.getBlockAtCell(targetCell)).map(target.isValidBlock(_)).isDefined
+          boardModel.getBlockAtCell(targetCell).map(target.isValidBlock(_)).isDefined
         }
       }
     }

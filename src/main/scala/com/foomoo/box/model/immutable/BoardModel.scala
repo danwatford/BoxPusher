@@ -1,7 +1,5 @@
 package com.foomoo.box.model.immutable
 
-import java.util.Optional
-
 import com.foomoo.box._
 import com.foomoo.box.model.Wall
 import com.foomoo.box.model.immutable.BoardModel.BoardModelBuilder
@@ -90,25 +88,25 @@ final class BoardModel(builder: BoardModelBuilder) {
     * Gets the cell for the given block.
     *
     * @param block The block to get the cell for.
-    * @return Optional of the Cell if the block is present in the model, empty otherwise.
+    * @return Option of the Cell if the block is present in the model, empty otherwise.
     */
-  def getBlockCell(block: Block): Optional[Cell] = toOptional(blockCellMap.get(block))
+  def getBlockCell(block: Block): Option[Cell] = blockCellMap.get(block)
 
   /**
     * Gets the block at the given cell, if any.
     *
     * @param cell The cell to get the block for.
-    * @return Optional of the Block at the cell. Empty if no block present.
+    * @return Option of the Block at the cell. Empty if no block present.
     */
-  def getBlockAtCell(cell: Cell): Optional[Block] = toOptional(blockCellMap.find(_._2 == cell).map(_._1))
+  def getBlockAtCell(cell: Cell): Option[Block] = blockCellMap.find(_._2 == cell).map(_._1)
 
   /**
     * Gets all blocks known to the model.
     *
     * @return The Set of Blocks.
     */
-  def getBlocks: java.util.Set[Block] = {
-    blockCellMap.keySet
+  def getBlocks: Set[Block] = {
+    blockCellMap.keySet.toSet
   }
 
   /**
@@ -117,23 +115,23 @@ final class BoardModel(builder: BoardModelBuilder) {
     * @param target The target to get the cell for.
     * @return Optional of the Cell if the block is present in the model, empty otherwise.
     */
-  def getTargetCell(target: Target): Optional[Cell] = toOptional(targetCellMap.get(target))
+  def getTargetCell(target: Target): Option[Cell] = targetCellMap.get(target)
 
   /**
     * Gets the target at the given cell, if any.
     *
     * @param cell The cell to get the target for.
-    * @return Optional of Target at the cell. Empty if no target present.
+    * @return Option of Target at the cell. Empty if no target present.
     */
-  def getTargetAtCell(cell: Cell): Optional[Target] = toOptional(targetCellMap.find(_._2 == cell).map(_._1))
+  def getTargetAtCell(cell: Cell): Option[Target] = targetCellMap.find(_._2 == cell).map(_._1)
 
   /**
     * Gets all targets known to the model.
     *
     * @return The Set of Targets.
     */
-  def getTargets: java.util.Set[Target] = {
-    targetCellMap.keySet
+  def getTargets: Set[Target] = {
+    targetCellMap.keySet.toSet
   }
 
   def getMinCell: Cell = {
@@ -154,7 +152,7 @@ final class BoardModel(builder: BoardModelBuilder) {
 
   private def moveBlocksBetweenCell(builder: BoardModel.BoardModelBuilder, block: Block, from: Cell, to: Cell, pushStrength: Int): Option[BoardModel] = {
     builder.blockCell(block, to)
-    val targetCellBlockOptional: Option[Block] = toOption(getBlockAtCell(to))
+    val targetCellBlockOptional: Option[Block] = getBlockAtCell(to)
     targetCellBlockOptional match {
       case None => Some(builder.build)
       case Some(targetCellBlock) =>
@@ -185,13 +183,6 @@ final class BoardModel(builder: BoardModelBuilder) {
     */
   private def recursiveBlockMove(builder: BoardModel.BoardModelBuilder, block: Block, targetCell: Cell, pushStrength: Int): Option[BoardModel] = {
     blockCellMap.lift(block).flatMap(currentCell => moveBlocksBetweenCell(builder, block, currentCell, targetCell, pushStrength))
-  }
-
-  private def toOption[T](javaOp: Optional[T]): Option[T] = if (javaOp.isPresent) Some(javaOp.get()) else None
-
-  private def toOptional[T](scalaOp: Option[T]): Optional[T] = scalaOp match {
-    case None => Optional.empty()
-    case Some(x) => Optional.of(x)
   }
 
 }
